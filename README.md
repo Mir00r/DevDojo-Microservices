@@ -25,6 +25,151 @@ DevDojo is a polyglot environment where you can find multiple microservices, eac
 - **Security & Observability:**  
   Explore common security patterns (JWT, OAuth2) and tools for monitoring and logging (Prometheus, ELK stack, Grafana), ensuring each service is not only functional but also secure and observable in production environments.
 
+## Root-Level Directory Structure
+```
+project-root/
+│
+├── services/                 # Each microservice lives in its own folder
+│   ├── auth-service/         # Authentication microservice
+│   ├── user-service/         # User management microservice
+│   ├── role-service/         # Role and permission management microservice
+│   ├── audit-service/        # Audit and logging microservice
+│   └── ...                   # Future microservices for other domains
+│
+├── shared-libraries/         # Shared code and utilities
+│   ├── common/               # Common utilities (e.g., logging, error handling)
+│   ├── models/               # Shared models and DTOs
+│   ├── config/               # Shared configuration utilities
+│   └── security/             # Security-related shared code (e.g., JWT utilities)
+│
+├── infra/                    # Infrastructure configuration
+│   ├── k8s/                  # Kubernetes manifests
+│   ├── docker/               # Dockerfiles and Docker Compose
+│   ├── ci-cd/                # CI/CD pipeline configurations
+│   ├── monitoring/           # Monitoring and alerting (e.g., Prometheus, Grafana)
+│   └── secrets/              # Encrypted secrets and environment variables
+│
+├── api-gateway/              # Central API Gateway configuration and logic
+│   ├── kong/                 # Kong API Gateway setup
+│   ├── nginx/                # NGINX configuration (optional)
+│   └── ...                   # Other gateway tools
+│
+├── documentation/            # API and system documentation
+│   ├── openapi/              # OpenAPI/Swagger specifications
+│   └── architecture-diagrams/ # Diagrams for architecture, data flow, etc.
+│
+├── scripts/                  # Deployment, testing, and utility scripts
+│   ├── db-migrations/        # Database migration scripts (e.g., Liquibase, Flyway)
+│   ├── load-testing/         # Load testing scripts (e.g., k6, JMeter)
+│   └── local-setup/          # Scripts to run services locally
+│
+├── logs/                     # Log files (git-ignored)
+│
+├── .gitignore                # Git ignore file
+├── README.md                 # Project documentation
+└── LICENSE                   # License information
+```
+
+## Detailed Folder Structure for Each Microservice
+```
+auth-service/
+│
+├── cmd/                      # Main entry points for the service
+│   └── main.go               # Main file to start the service
+│
+├── internal/                 # Internal application code (not accessible externally)
+│   ├── api/                  # API layer
+│   │   ├── controllers/      # REST API controllers (e.g., login, MFA)
+│   │   ├── middlewares/      # Request middlewares (e.g., JWT validation)
+│   │   └── routes.go         # Route definitions
+│   │
+│   ├── services/             # Business logic (e.g., token generation, authentication)
+│   │   ├── auth.go
+│   │   └── user.go
+│   │
+│   ├── models/               # Data models (e.g., User, Token)
+│   │   └── user.go
+│   │
+│   ├── repositories/         # Database access logic (e.g., PostgreSQL queries)
+│   │   └── user_repository.go
+│   │
+│   ├── utils/                # Utility functions (e.g., hashing, JWT handling)
+│   │   ├── bcrypt.go
+│   │   └── jwt.go
+│   │
+│   └── config/               # Service-specific configuration
+│       ├── app_config.go
+│       └── env/              # Environment variables handling
+│
+├── test/                     # Unit and integration tests
+│   ├── auth_test.go
+│   └── mfa_test.go
+│
+├── db/                       # Database migrations and seeds
+│   ├── migrations/
+│   │   ├── 001_create_users_table.sql
+│   │   └── 002_create_tokens_table.sql
+│   └── seeds/
+│       └── sample_data.sql
+│
+├── build/                    # Build configurations
+│   ├── Dockerfile            # Dockerfile for the microservice
+│   ├── Makefile              # Makefile for building and testing
+│   └── helm/                 # Helm charts for Kubernetes deployment
+│
+├── docs/                     # Service-specific documentation
+│   └── openapi.yaml          # OpenAPI/Swagger spec for the service
+│
+└── logs/                     # Service-specific log files (git-ignored)
+```
+
+## Shared Libraries (shared-libraries/)
+```
+shared-libraries/
+│
+├── common/                   # Common utilities
+│   ├── logger.go             # Centralized logging
+│   ├── error.go              # Custom error handling
+│   └── pagination.go         # Pagination utilities
+│
+├── models/                   # Shared data models
+│   └── user.go               # User model shared across services
+│
+├── config/                   # Shared configuration code
+│   └── app_config.go
+│
+├── security/                 # Shared security utilities
+│   ├── jwt_utils.go          # JWT generation and validation
+│   ├── hashing.go            # Password hashing utilities
+│   └── cors.go               # Cross-Origin Resource Sharing setup
+└── ...
+```
+
+## Infrastructure (infra/)
+```
+infra/
+│
+├── k8s/                      # Kubernetes manifests
+│   ├── auth-service.yaml     # Deployment for the auth service
+│   ├── user-service.yaml     # Deployment for the user service
+│   ├── ingress.yaml          # Ingress configurations
+│   └── secrets.yaml          # Encrypted secrets
+│
+├── docker/                   # Docker setup for local testing
+│   ├── docker-compose.yaml   # Docker Compose for local development
+│   └── Dockerfile            # Base Dockerfile for services
+│
+├── ci-cd/                    # CI/CD pipeline configurations
+│   ├── github-actions/       # GitHub Actions YAML files
+│   └── jenkins/              # Jenkins pipelines
+│
+├── monitoring/               # Monitoring setup
+│   ├── prometheus/           # Prometheus configuration
+│   └── grafana/              # Grafana dashboards
+│
+└── secrets/                  # Encrypted secrets for deployment
+```
+
 ## Repository Structure
 
 ```
