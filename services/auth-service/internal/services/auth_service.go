@@ -14,9 +14,9 @@ type AuthService struct {
 	UserRepo *repositories.UserRepository
 }
 
-//func NewAuthService(repo *repositories.UserRepository) *AuthService {
-//	return &AuthService{UserRepo: repo}
-//}
+func NewAuthService(repo *repositories.UserRepository) *AuthService {
+	return &AuthService{UserRepo: repo}
+}
 
 // Authenticate validates user credentials and returns JWT token
 func (svc *AuthService) Authenticate(req services.LoginRequest) (map[string]string, error) {

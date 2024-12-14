@@ -1,19 +1,19 @@
-package api
+package routes
 
 import (
 	"github.com/Mir00r/auth-service/internal/api/controllers"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
 // SetupRoutes defines all API routes categorized by Public, Protected, and Internal APIs
-func SetupRoutes(publicAuthController *controllers.PublicAuthController) *mux.Router {
-
-	router := mux.NewRouter()
+func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAuthController) {
 
 	// Public APIs
-	public := router.PathPrefix("/public").Subrouter()
-	public.HandleFunc("/v1/login", publicAuthController.PublicLogin).Methods("POST")
-	public.HandleFunc("/v1/register", publicAuthController.PublicRegister).Methods("POST")
+	public := router.Group("/public")
+	{
+		public.POST("/v1/login", publicAuthController.PublicLogin)
+		public.POST("/v1/register", publicAuthController.PublicRegister)
+	}
 	//
 	//// Protected APIs
 	//protected := router.PathPrefix("/protected").Subrouter()
@@ -25,6 +25,4 @@ func SetupRoutes(publicAuthController *controllers.PublicAuthController) *mux.Ro
 	//internal := router.PathPrefix("/internal").Subrouter()
 	//internal.Use(middlewares.BasicAuthMiddleware)
 	//internal.HandleFunc("/v1/validate-token", controllers.InternalValidateToken).Methods("POST")
-
-	return router
 }

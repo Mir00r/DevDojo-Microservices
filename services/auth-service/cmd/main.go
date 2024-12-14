@@ -2,8 +2,11 @@ package main
 
 import (
 	"github.com/Mir00r/auth-service/db"
+	"github.com/Mir00r/auth-service/internal/api/controllers"
 	"github.com/Mir00r/auth-service/internal/api/routes"
 	"github.com/Mir00r/auth-service/internal/configs"
+	"github.com/Mir00r/auth-service/internal/repositories"
+	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/gin-gonic/gin"
 	"log"
 	"os"
@@ -21,8 +24,13 @@ func main() {
 	// Create a new Gin router
 	router := gin.Default()
 
+	// Initialize the controller
+	userRepo := repositories.NewUserRepository(database.DB)
+	authService := services.NewAuthService(userRepo)
+	publicAuthController := controllers.NewPublicAuthController(authService)
+
 	// Register routes
-	routes.SetupAuthRoutes(router)
+	routes.SetupRoutes(router, publicAuthController)
 
 	// Get the port from environment variable or default to 8081
 	port := os.Getenv("PORT")

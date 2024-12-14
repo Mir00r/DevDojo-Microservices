@@ -1,11 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
-	"github.com/Mir00r/auth-service/internal/utils"
-
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
@@ -13,37 +11,44 @@ type PublicAuthController struct {
 	AuthService *services.AuthService
 }
 
-// PublicLogin handles user login and issues JWT
-func (ctrl *PublicAuthController) PublicLogin(w http.ResponseWriter, r *http.Request) {
-	var loginRequest request.LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
-		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-
-	token, err := ctrl.AuthService.Authenticate(loginRequest)
-	if err != nil {
-		utils.ErrorResponse(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-
-	utils.JSONResponse(w, http.StatusOK, token)
+func NewPublicAuthController(authService *services.AuthService) *PublicAuthController {
+	return &PublicAuthController{AuthService: authService}
 }
 
-// PublicRegister handles new user registration
-func (ctrl *PublicAuthController) PublicRegister(w http.ResponseWriter, r *http.Request) {
-	var registerRequest request.RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&registerRequest); err != nil {
-		utils.ErrorResponse(w, http.StatusBadRequest, "Invalid request payload")
+// PublicLogin handles user login and issues JWT
+func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
+	var req request.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	if err := ctrl.AuthService.RegisterUser(registerRequest); err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+	// Authenticate the user
+	token, err := ctrl.AuthService.Authenticate(req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusCreated, map[string]string{"message": "User registered successfully"})
+	c.JSON(http.StatusOK, token)
+}
+
+// PublicRegister handles user registration
+func (ctrl *PublicAuthController) PublicRegister(c *gin.Context) {
+	var req request.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Register the user
+	err := ctrl.AuthService.RegisterUser(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
 //
