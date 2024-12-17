@@ -1,8 +1,34 @@
 #!/bin/bash
 
+# Ensure the required folder structure exists
+MIGRATION_DIR="db/migrations"
+mkdir -p "$MIGRATION_DIR"
+
 if [ "$1" = "migration" ]; then
-  echo "-- $(date "+%b %d, %Y")" >"db/migration/V$(date +%s)__$2.sql"
-  echo "Migration Created!"
+  if [ -z "$2" ]; then
+    echo "Error: Migration name is required. Usage: ./script.sh migration <name>"
+    exit 1
+  fi
+
+  # Get the latest sequence number from existing migration files
+  LAST_SEQUENCE=$(ls "$MIGRATION_DIR" | grep -E '^[0-9]{3}.*\.sql$' | sort | tail -n 1 | cut -d'_' -f1)
+  if [ -z "$LAST_SEQUENCE" ]; then
+    SEQUENCE="001" # Start sequence from 001
+  else
+    SEQUENCE=$(printf "%03d" $((10#$LAST_SEQUENCE + 1))) # Increment sequence and zero-pad to 3 digits
+  fi
+
+  # Generate migration filenames
+  UP_FILE="$MIGRATION_DIR/${SEQUENCE}_$2.up.sql"
+  DOWN_FILE="$MIGRATION_DIR/${SEQUENCE}_$2.down.sql"
+
+  # Create migration files
+  echo "-- $(date "+%b %d, %Y")" >"$UP_FILE"
+  echo "-- $(date "+%b %d, %Y")" >"$DOWN_FILE"
+
+  echo "Migration files created:"
+  echo "  UP: $UP_FILE"
+  echo "  DOWN: $DOWN_FILE"
 else
   echo "Must specify type of generated asset. i.e. crud | module | migration"
 fi

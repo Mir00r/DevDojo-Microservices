@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	"gorm.io/gorm"
+	"log"
 )
 
 // UserRepository defines methods for interacting with the users table
@@ -27,12 +28,34 @@ func (repo *UserRepository) CreateUser(user *entities.User) error {
 // FindUserByEmail retrieves a user by their email address
 func (repo *UserRepository) FindUserByEmail(email string) (*entities.User, error) {
 	var user entities.User
-	if err := repo.DB.Where("email = ?", email).First(&user).Error; err != nil {
+
+	//log.Printf("Querying user by email: %v", email)
+
+	// Use LOWER() for case-insensitive matching
+	if err := repo.DB.Where("LOWER(email) = LOWER(?)", email).First(&user).Error; err != nil {
+		log.Printf("Error querying user from DB: %v using email: %v", err, email)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil // Return nil for user if not found
+			log.Printf("No user found with email: %v", email)
+			return nil, nil
 		}
 		return nil, err
 	}
+
+	//log.Printf("Found user: %+v", user)
+
+	//var result map[string]interface{}
+	//if err := repo.DB.Raw("SELECT * FROM auth.users WHERE email = ?", email).Scan(&result).Error; err != nil {
+	//	log.Fatalf("Failed to execute raw query: %v", err)
+	//}
+	//log.Printf("Raw query result: %+v", result)
+	//
+	//if err := repo.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	//	log.Printf("After query the user from DB: %v\n using email %v", err, email)
+	//	if errors.Is(err, gorm.ErrRecordNotFound) {
+	//		return nil, nil // Return nil for user if not found
+	//	}
+	//	return nil, err
+	//}
 	return &user, nil
 }
 
@@ -46,4 +69,12 @@ func (repo *UserRepository) FindUserByID(id string) (*entities.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+// UpdatePassword updates the user's password in the database
+func (repo *UserRepository) UpdatePassword(userID string, hashedPassword string) error {
+	return repo.DB.Model(&entities.User{}).
+		Where("id = ?", userID).
+		Update("password", hashedPassword).
+		Error
 }

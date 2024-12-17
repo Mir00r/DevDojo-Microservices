@@ -19,15 +19,18 @@ func main() {
 	// Initialize database
 	dsn := config.GetConfig().DatabaseDSN
 	database.InitDatabase(dsn)
-	//database.Connect()
+	// Run migrations
+	database.RunMigrations(config.GetConfig().MigrationPath, dsn)
 
 	// Create a new Gin router
 	router := gin.Default()
 
 	// Initialize the controller
 	userRepo := repositories.NewUserRepository(database.DB)
+	tokenRepo := repositories.NewTokenRepository(database.DB)
 	authService := services.NewAuthService(userRepo)
-	publicAuthController := controllers.NewPublicAuthController(authService)
+	tokenService := services.NewTokenService(tokenRepo, userRepo)
+	publicAuthController := controllers.NewPublicAuthController(authService, tokenService)
 
 	// Register routes
 	routes.SetupRoutes(router, publicAuthController)

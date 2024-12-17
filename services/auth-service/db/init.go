@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/Mir00r/auth-service/internal/models/entities"
 	"log"
 
 	"gorm.io/driver/postgres"
@@ -22,10 +21,10 @@ func InitDatabase(dsn string) {
 	}
 
 	// Run auto-migrations
-	err = DB.AutoMigrate(&entities.User{}, &entities.Token{})
-	if err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
-	}
+	//err = DB.AutoMigrate(&entities.User{}, &entities.Token{}, &entities.PasswordResetToken{})
+	//if err != nil {
+	//	log.Fatalf("Failed to run migrations: %v", err)
+	//}
 
 	log.Println("Database connected and migrated successfully")
 }

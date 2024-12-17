@@ -53,3 +53,5 @@ func (svc *AuthService) RegisterUser(req services.RegisterRequest) error {
 	}
 	return svc.UserRepo.CreateUser(newUser)
 }
+
+var ErrUserNotFound = errors.New("user not found")

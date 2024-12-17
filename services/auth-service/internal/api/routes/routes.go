@@ -13,6 +13,8 @@ func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAut
 	{
 		public.POST("/v1/login", publicAuthController.PublicLogin)
 		public.POST("/v1/register", publicAuthController.PublicRegister)
+		public.POST("/v1/password-reset", publicAuthController.PasswordReset)
+		public.POST("/v1/confirm-password-reset", publicAuthController.ConfirmPasswordReset)
 	}
 	//
 	//// Protected APIs
