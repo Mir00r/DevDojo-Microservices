@@ -6,18 +6,22 @@ import (
 )
 
 // SetupRoutes defines all API routes categorized by Public, Protected, and Internal APIs
-func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAuthController) {
+func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAuthController, protectedAuthController *controllers.ProtectedAuthController) {
 
 	// Public APIs
-	public := router.Group("/public")
+	public := router.Group("/v1/public/auth")
 	{
-		public.POST("/v1/login", publicAuthController.PublicLogin)
-		public.POST("/v1/register", publicAuthController.PublicRegister)
-		public.POST("/v1/password-reset", publicAuthController.PasswordReset)
-		public.POST("/v1/confirm-password-reset", publicAuthController.ConfirmPasswordReset)
+		public.POST("/login", publicAuthController.PublicLogin)
+		public.POST("/register", publicAuthController.PublicRegister)
+		public.POST("/password-reset", publicAuthController.PasswordReset)
+		public.POST("/confirm-password-reset", publicAuthController.ConfirmPasswordReset)
 	}
-	//
-	//// Protected APIs
+
+	// Protected APIs
+	protected := router.Group("/v1/protected/auth")
+	{
+		protected.POST("/logout", protectedAuthController.ProtectedLogout)
+	}
 	//protected := router.PathPrefix("/protected").Subrouter()
 	//protected.Use(middlewares.JWTMiddleware)
 	//protected.HandleFunc("/v1/user-profile", controllers.ProtectedUserProfile).Methods("GET")

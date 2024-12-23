@@ -5,6 +5,7 @@ import (
 	"errors"
 	config "github.com/Mir00r/auth-service/internal/configs"
 	"github.com/golang-jwt/jwt/v4"
+	"log"
 	"os"
 	"time"
 )
@@ -18,6 +19,7 @@ type JWTClaims struct {
 
 // GenerateJWT generates a new JWT token with the provided user ID and email.
 func GenerateJWT(userID, email, secret string, expiry time.Duration) (string, error) {
+	log.Printf("JWTSecret While Generating Token: %v", secret)
 	claims := JWTClaims{
 		UserID: userID,
 		Email:  email,
@@ -32,6 +34,7 @@ func GenerateJWT(userID, email, secret string, expiry time.Duration) (string, er
 	if err != nil {
 		return "", err
 	}
+	log.Printf("Generated Token: %s", signedToken)
 	return signedToken, nil
 }
 
@@ -57,25 +60,36 @@ func GenerateJWT(userID, email, secret string, expiry time.Duration) (string, er
 //}
 
 // VerifyJWT verifies a JWT and returns the claims if valid
-func VerifyJWT(tokenString string) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		config.LoadConfig()
+func VerifyJWT(tokenString string) (*JWTClaims, error) {
+	config.LoadConfig()
 
+	// Debug log to verify JWTSecret
+	log.Printf("Received Token: %s", tokenString)
+	log.Printf("JWTSecret in VerifyJWT: %s", config.GetConfig().JWTSecret)
+	secret := []byte(config.GetConfig().JWTSecret)
+	log.Printf("Using JWT Secret After Conevrtion Byte Data Type: %s", secret)
+
+	claims := &JWTClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		// Ensure the signing method is HS256
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return config.GetConfig().JWTSecret, nil
+
+		// Return the secret for verification
+		return secret, nil
 	})
 
 	if err != nil {
+		log.Printf("JWT Parsing Error: %v", err)
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, nil
+	if !token.Valid {
+		return nil, errors.New("invalid token")
 	}
 
-	return nil, errors.New("invalid token")
+	return claims, nil
 }
 
 // AddClaimsToContext adds JWT claims to the request context

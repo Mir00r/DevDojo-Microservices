@@ -31,9 +31,10 @@ func main() {
 	authService := services.NewAuthService(userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
 	publicAuthController := controllers.NewPublicAuthController(authService, tokenService)
+	protectedAuthController := controllers.NewProtectedAuthController(authService, tokenService)
 
 	// Register routes
-	routes.SetupRoutes(router, publicAuthController)
+	routes.SetupRoutes(router, publicAuthController, protectedAuthController)
 
 	// Get the port from environment variable or default to 8081
 	port := os.Getenv("PORT")

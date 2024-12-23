@@ -39,7 +39,7 @@ func LoadConfig() {
 			DatabaseDSN:      env.GetEnv("DATABASE_DSN", "postgres://postgres:admin@localhost:5432/devdojo?sslmode=disable"),
 			JWTSecret:        env.GetEnv("JWT_SECRET", "202ed20f8188b90391022c1df7f789cba1af91fa30b6d86a145edcdd73d65b2e685f519d43152f403480b318e9934e43c9cf5d31a2f45a66bf5159ff88cc416e6349c6af58efc10814aa36780682e5ea9f37d964d5ec64d8a054f9eb519b35a852de9a0874d4279181a35e97c7b31041f313c788f808243c137e9b6739199aa44c46bd9ec786cc2c6faf3fe88744ba7fe1499996f2ceb87aafc6e39b9011b36b01d2cf108f731acf443069a23362d5c5161b350f0c1a0807ccf5727292a20717d6cb787f1a9a0cb793469dd245a728fd5c2c376562932e5b10327559cbbb7511628ed4f4411f6e0dd88827ce4212a93ab78be69adf9ad2e5dd92c38235c1743f"),
 			ResetTokenSecret: env.GetEnv("RESET_SECRET", "auAs0tV7dS"),
-			TokenExpiry:      env.GetEnvAsInt("TOKEN_EXPIRY", 3600),     // Default: 1 hour
+			TokenExpiry:      env.GetEnvAsInt("TOKEN_EXPIRY", 604800),   // Default: 24 hour
 			RefreshExpiry:    env.GetEnvAsInt("REFRESH_EXPIRY", 604800), // Default: 1 week
 			PasswordResetURL: env.GetEnv("PASSWORD_URL", "http://localhost:8081"),
 			MigrationPath:    env.GetEnv("MIGRATION_PATH", absoluteMigrationPath),

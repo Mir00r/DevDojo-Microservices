@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	config "github.com/Mir00r/auth-service/internal/configs"
+	"github.com/Mir00r/auth-service/internal/models/entities"
+	"time"
 
 	services "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/repositories"
@@ -88,4 +90,25 @@ func (svc *TokenService) ResetPassword(req services.ConfirmPasswordResetRequest)
 	}
 
 	return nil
+}
+
+// Logout invalidates the current token (via blacklisting or other mechanisms)
+func (svc *TokenService) Logout(tokenString string, userID string) error {
+	// Optionally check if the token is already blacklisted
+	isBlacklisted, err := svc.TokenRepo.IsTokenBlacklisted(tokenString)
+	if err != nil {
+		return err
+	}
+	if isBlacklisted {
+		return errors.New("token is already invalidated")
+	}
+
+	// Blacklist the token
+	token := &entities.Token{
+		Token:     tokenString,
+		UserID:    userID,
+		Type:      "access",                  // Assuming token type is "access"
+		ExpiresAt: time.Now().Add(time.Hour), // Set expiration for blacklisted entry
+	}
+	return svc.TokenRepo.BlacklistToken(token)
 }
