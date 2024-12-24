@@ -6,10 +6,12 @@ jwt:
 database:
   host: "localhost"
   port: 5432
-  user: "mir00r"
-  password:
+  user: "postgres"
+  password: "admin"
   dbname: "devdojo"
-  dsn: "postgres://mir00r:@localhost:5432/devdojo?sslmode=disable"
+  dsn: "postgres://postgres:admin@localhost:5432/devdojo?sslmode=disable"
+password:
+  PasswordResetURL: "http://localhost:8081"
 #redis:
 #  host: "localhost"
 #  port: 6379

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/db"
 	"github.com/Mir00r/auth-service/internal/api/controllers"
 	"github.com/Mir00r/auth-service/internal/api/routes"
-	"github.com/Mir00r/auth-service/internal/configs"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/gin-gonic/gin"
@@ -14,13 +14,25 @@ import (
 
 func main() {
 	// Load configuration
-	config.LoadConfig()
+	//config.LoadConfig()
 
 	// Initialize database
-	dsn := config.GetConfig().DatabaseDSN
-	database.InitDatabase(dsn)
+	//dsn := config.GetConfig().DatabaseDSN
+	//database.InitDatabase(dsn)
+
+	// Load the configuration file
+	configPath := "./configs/config.yaml"
+	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
+		configPath = envPath
+	}
+	config.LoadConfig(configPath)
+
+	// Connect to the database
+	database.Connect()
+
 	// Run migrations
-	database.RunMigrations(config.GetConfig().MigrationPath, dsn)
+	//database.RunMigrations(config.GetConfig().MigrationPath, dsn)
+	database.RunMigrations(database.MigrationPath(), config.AppConfig.Database.DSN)
 
 	// Create a new Gin router
 	router := gin.Default()

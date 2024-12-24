@@ -19,38 +19,40 @@ func NewProtectedAuthController(authService *services.AuthService, tokenService 
 
 // ProtectedLogout handles the logout API request
 func (ctrl *ProtectedAuthController) ProtectedLogout(c *gin.Context) {
+	// Retrieve the user ID from the context
+	userID, exists := c.Get("userID")
+	if !exists {
+		utils.GinErrorResponse(c, http.StatusUnauthorized, "User ID not found")
+		return
+	}
+
 	// Extract the token from the Authorization header
 	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, "Authorization header is missing")
-		return
-	}
-
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == "" {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, "Invalid Authorization header")
-		return
-	}
-
-	// Verify the JWT and extract claims
-	claims, err := utils.VerifyJWT(tokenString)
-	if err != nil {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, "Invalid token")
-		return
-	}
-
-	// Extract user_id from the claims
-	userID := claims.UserID
-	if userID == "" {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, "User ID not found in token")
-		return
-	}
 
 	// Call the logout service
-	if err := ctrl.TokenService.Logout(tokenString, userID); err != nil {
+	if err := ctrl.TokenService.Logout(tokenString, userID.(string)); err != nil {
 		utils.GinErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	utils.GinJSONResponse(c, http.StatusOK, gin.H{"message": "Logout successful"})
+}
+
+func (ctrl *ProtectedAuthController) ProtectedUserProfile(c *gin.Context) {
+	// Retrieve the user ID from the context
+	userID, exists := c.Get("userID")
+	if !exists {
+		utils.GinErrorResponse(c, http.StatusUnauthorized, "User ID not found")
+		return
+	}
+
+	// Call the service to fetch the user's profile
+	userProfile, err := ctrl.AuthService.GetUserProfile(userID.(string))
+	if err != nil {
+		utils.GinErrorResponse(c, http.StatusInternalServerError, "Failed to fetch user profile")
+		return
+	}
+
+	utils.GinJSONResponse(c, http.StatusOK, userProfile)
 }

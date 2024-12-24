@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
-	config "github.com/Mir00r/auth-service/internal/configs"
+	"github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	"time"
 
@@ -48,7 +48,7 @@ func (svc *TokenService) InitiatePasswordReset(req services.PasswordResetRequest
 	}
 
 	// Send the reset email
-	resetLink := fmt.Sprintf("%s/reset-password?token=%s", config.GetConfig().PasswordResetURL, resetToken)
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", config.AppConfig.Password.PasswordResetURL, resetToken)
 	err = NewEmailService().SendPasswordResetEmail(user.Email, resetLink)
 	if err != nil {
 		return err

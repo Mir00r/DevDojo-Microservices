@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 	"errors"
-	config "github.com/Mir00r/auth-service/internal/configs"
+	"github.com/Mir00r/auth-service/configs"
 	"github.com/golang-jwt/jwt/v4"
 	"log"
 	"os"
@@ -61,12 +61,12 @@ func GenerateJWT(userID, email, secret string, expiry time.Duration) (string, er
 
 // VerifyJWT verifies a JWT and returns the claims if valid
 func VerifyJWT(tokenString string) (*JWTClaims, error) {
-	config.LoadConfig()
+	//config.LoadConfig()
 
 	// Debug log to verify JWTSecret
 	log.Printf("Received Token: %s", tokenString)
-	log.Printf("JWTSecret in VerifyJWT: %s", config.GetConfig().JWTSecret)
-	secret := []byte(config.GetConfig().JWTSecret)
+	log.Printf("JWTSecret in VerifyJWT: %s", config.AppConfig.JWT.Secret)
+	secret := []byte(config.AppConfig.JWT.Secret)
 	log.Printf("Using JWT Secret After Conevrtion Byte Data Type: %s", secret)
 
 	claims := &JWTClaims{}

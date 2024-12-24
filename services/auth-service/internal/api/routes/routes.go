@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/Mir00r/auth-service/internal/api/controllers"
+	"github.com/Mir00r/auth-service/internal/api/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,8 +20,10 @@ func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAut
 
 	// Protected APIs
 	protected := router.Group("/v1/protected/auth")
+	protected.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
 	{
 		protected.POST("/logout", protectedAuthController.ProtectedLogout)
+		protected.GET("/user-profile", protectedAuthController.ProtectedUserProfile)
 	}
 	//protected := router.PathPrefix("/protected").Subrouter()
 	//protected.Use(middlewares.JWTMiddleware)

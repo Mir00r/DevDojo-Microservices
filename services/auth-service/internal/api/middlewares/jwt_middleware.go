@@ -1,36 +1,43 @@
 package middlewares
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
 
 	"github.com/Mir00r/auth-service/internal/utils"
 )
 
-func JWTMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
+// AuthMiddleware validates the JWT and injects user claims into the Gin context
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Extract the token from the Authorization header
+		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
+			utils.GinErrorResponse(c, http.StatusUnauthorized, "Authorization header is missing")
+			c.Abort()
 			return
 		}
 
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		if token == "" {
-			http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == "" {
+			utils.GinErrorResponse(c, http.StatusUnauthorized, "Invalid Authorization header")
+			c.Abort()
 			return
 		}
 
-		claims, err := utils.VerifyJWT(token)
+		// Verify the JWT and extract claims
+		claims, err := utils.VerifyJWT(tokenString)
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			utils.GinErrorResponse(c, http.StatusUnauthorized, "Invalid token")
+			c.Abort()
 			return
 		}
 
-		// Attach claims to the request context for further use
-		ctx := utils.AddClaimsToContext(r.Context(), claims)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		// Inject claims into the Gin context
+		c.Set("userID", claims.UserID)
+		c.Next()
+	}
 }
 
 func BasicAuthMiddleware(next http.Handler) http.Handler {

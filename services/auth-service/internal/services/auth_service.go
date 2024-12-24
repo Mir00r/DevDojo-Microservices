@@ -2,12 +2,11 @@ package services
 
 import (
 	"errors"
-	config "github.com/Mir00r/auth-service/internal/configs"
+	"github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	services "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
-	"time"
 )
 
 type AuthService struct {
@@ -29,8 +28,8 @@ func (svc *AuthService) Authenticate(req services.LoginRequest) (map[string]stri
 		return nil, errors.New("invalid credentials")
 	}
 
-	config.LoadConfig()
-	token, err := utils.GenerateJWT(user.ID, user.Email, config.GetConfig().JWTSecret, time.Duration(config.GetConfig().TokenExpiry))
+	//config.LoadConfig()
+	token, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, config.TokenExpiry())
 	if err != nil {
 		return nil, errors.New("failed to generate token")
 	}
@@ -55,3 +54,14 @@ func (svc *AuthService) RegisterUser(req services.RegisterRequest) error {
 }
 
 var ErrUserNotFound = errors.New("user not found")
+
+func (svc *AuthService) GetUserProfile(userID string) (*entities.User, error) {
+	user, err := svc.UserRepo.FindUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+	return user, nil
+}

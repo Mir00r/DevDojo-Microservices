@@ -19,6 +19,7 @@ func RunMigrations(migrationPath string, dsn string) {
 		migrationPath = "file://" + migrationPath
 	}
 	log.Printf("Using migration path: %s", migrationPath)
+	log.Printf("DSN path: %s", dsn)
 
 	m, err := migrate.New(migrationPath, dsn)
 	if err != nil {
