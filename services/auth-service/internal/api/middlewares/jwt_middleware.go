@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/Mir00r/auth-service/constants"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -12,16 +13,16 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Extract the token from the Authorization header
-		authHeader := c.GetHeader("Authorization")
+		authHeader := c.GetHeader(constants.Authorization)
 		if authHeader == "" {
-			utils.GinErrorResponse(c, http.StatusUnauthorized, "Authorization header is missing")
+			utils.GinErrorResponse(c, http.StatusUnauthorized, constants.ErrMissingAuthHeader)
 			c.Abort()
 			return
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		tokenString := strings.TrimPrefix(authHeader, constants.Bearer)
 		if tokenString == "" {
-			utils.GinErrorResponse(c, http.StatusUnauthorized, "Invalid Authorization header")
+			utils.GinErrorResponse(c, http.StatusUnauthorized, constants.ErrInvalidAuthHeader)
 			c.Abort()
 			return
 		}
@@ -29,7 +30,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Verify the JWT and extract claims
 		claims, err := utils.VerifyJWT(tokenString)
 		if err != nil {
-			utils.GinErrorResponse(c, http.StatusUnauthorized, "Invalid token")
+			utils.GinErrorResponse(c, http.StatusUnauthorized, constants.ErrInvalidToken)
 			c.Abort()
 			return
 		}
@@ -44,7 +45,7 @@ func BasicAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if !ok || !utils.ValidateBasicAuth(username, password) {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, constants.Unauthorized, http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)

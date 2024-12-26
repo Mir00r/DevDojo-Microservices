@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"github.com/Mir00r/auth-service/constants"
 	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/gin-gonic/gin"
@@ -63,7 +64,7 @@ func (ctrl *PublicAuthController) PasswordReset(c *gin.Context) {
 	// Call the TokenService to initiate the password reset
 	err := ctrl.TokenService.InitiatePasswordReset(req)
 	if err != nil {
-		if errors.Is(err, services.ErrUserNotFound) {
+		if errors.Is(err, constants.ErrUserNotFoundVar) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate password reset"})
@@ -84,7 +85,7 @@ func (ctrl *PublicAuthController) ConfirmPasswordReset(c *gin.Context) {
 	// Call the TokenService to confirm the password reset
 	err := ctrl.TokenService.ResetPassword(req)
 	if err != nil {
-		if errors.Is(err, services.ErrUserNotFound) {
+		if errors.Is(err, constants.ErrUserNotFoundVar) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm password reset"})

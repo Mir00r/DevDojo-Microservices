@@ -1,8 +1,8 @@
 package services
 
 import (
-	"errors"
 	"github.com/Mir00r/auth-service/configs"
+	"github.com/Mir00r/auth-service/constants"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	services "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/repositories"
@@ -21,17 +21,17 @@ func NewAuthService(repo *repositories.UserRepository) *AuthService {
 func (svc *AuthService) Authenticate(req services.LoginRequest) (map[string]string, error) {
 	user, err := svc.UserRepo.FindUserByEmail(req.Email)
 	if err != nil {
-		return nil, errors.New("invalid credentials")
+		return nil, constants.ErrInvalidCredentialVar
 	}
 
 	if !utils.VerifyPassword(user.Password, req.Password) {
-		return nil, errors.New("invalid credentials")
+		return nil, constants.ErrInvalidCredentialVar
 	}
 
 	//config.LoadConfig()
 	token, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, config.TokenExpiry())
 	if err != nil {
-		return nil, errors.New("failed to generate token")
+		return nil, constants.ErrGenerateTokenVar
 	}
 
 	return map[string]string{"access_token": token}, nil
@@ -41,7 +41,7 @@ func (svc *AuthService) Authenticate(req services.LoginRequest) (map[string]stri
 func (svc *AuthService) RegisterUser(req services.RegisterRequest) error {
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return errors.New("failed to hash password")
+		return constants.ErrHashPasswordVar
 	}
 
 	// Create a new user instance
@@ -53,15 +53,13 @@ func (svc *AuthService) RegisterUser(req services.RegisterRequest) error {
 	return svc.UserRepo.CreateUser(newUser)
 }
 
-var ErrUserNotFound = errors.New("user not found")
-
 func (svc *AuthService) GetUserProfile(userID string) (*entities.User, error) {
 	user, err := svc.UserRepo.FindUserByID(userID)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.New("user not found")
+		return nil, constants.ErrUserNotFoundVar
 	}
 	return user, nil
 }

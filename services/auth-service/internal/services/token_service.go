@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Mir00r/auth-service/configs"
+	"github.com/Mir00r/auth-service/constants"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	"time"
 
@@ -30,7 +31,7 @@ func (svc *TokenService) InitiatePasswordReset(req services.PasswordResetRequest
 		return err
 	}
 	if user == nil {
-		return ErrUserNotFound
+		return constants.ErrUserNotFoundVar
 	}
 
 	// Generate a reset token
@@ -100,7 +101,7 @@ func (svc *TokenService) Logout(tokenString string, userID string) error {
 		return err
 	}
 	if isBlacklisted {
-		return errors.New("token is already invalidated")
+		return constants.ErrTokenInvalidatedVar
 	}
 
 	// Blacklist the token
