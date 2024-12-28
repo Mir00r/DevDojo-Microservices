@@ -7,7 +7,11 @@ import (
 )
 
 // SetupRoutes defines all API routes categorized by Public, Protected, and Internal APIs
-func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAuthController, protectedAuthController *controllers.ProtectedAuthController) {
+func SetupRoutes(router *gin.Engine,
+	publicAuthController *controllers.PublicAuthController,
+	protectedAuthController *controllers.ProtectedAuthController,
+	internalAuthController *controllers.InternalAuthController,
+) {
 
 	// Public APIs
 	public := router.Group("/v1/public/auth")
@@ -28,13 +32,11 @@ func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAut
 		protected.POST("/mfa/verify", protectedAuthController.VerifyMFA)
 	}
 
-	//protected := router.PathPrefix("/protected").Subrouter()
-	//protected.Use(middlewares.JWTMiddleware)
-	//protected.HandleFunc("/v1/user-profile", controllers.ProtectedUserProfile).Methods("GET")
-	//protected.HandleFunc("/v1/logout", controllers.ProtectedLogout).Methods("POST")
-	//
-	//// Internal APIs
-	//internal := router.PathPrefix("/internal").Subrouter()
-	//internal.Use(middlewares.BasicAuthMiddleware)
-	//internal.HandleFunc("/v1/validate-token", controllers.InternalValidateToken).Methods("POST")
+	// Internal APIs
+	internal := router.Group("/v1/internal/auth")
+	internal.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
+	{
+		internal.POST("/validate-token", internalAuthController.ValidateToken)
+		internal.GET("/service-health", internalAuthController.ServiceHealth)
+	}
 }

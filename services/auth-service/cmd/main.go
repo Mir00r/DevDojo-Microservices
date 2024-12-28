@@ -43,14 +43,16 @@ func main() {
 	mfaRepo := repositories.NewMFARepository(database.DB)
 
 	authService := services.NewAuthService(userRepo)
+	internalAuthService := services.NewInternalAuthService(userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
 	mfaService := services.NewMFAService(mfaRepo, userRepo)
 
 	publicAuthController := controllers.NewPublicAuthController(authService, tokenService)
 	protectedAuthController := controllers.NewProtectedAuthController(authService, tokenService, mfaService)
+	internalAuthController := controllers.NewInternalAuthController(internalAuthService)
 
 	// Register routes
-	routes.SetupRoutes(router, publicAuthController, protectedAuthController)
+	routes.SetupRoutes(router, publicAuthController, protectedAuthController, internalAuthController)
 
 	// Get the port from environment variable or default to 8081
 	port := os.Getenv("PORT")

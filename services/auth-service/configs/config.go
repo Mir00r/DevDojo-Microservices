@@ -8,11 +8,12 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig   `yaml:"server"`
-	JWT      JWTConfig      `yaml:"jwt"`
-	Database DatabaseConfig `yaml:"database"`
-	Redis    RedisConfig    `yaml:"redis"`
-	Password PasswordConfig `yaml:"password"`
+	Server           ServerConfig           `yaml:"server"`
+	JWT              JWTConfig              `yaml:"jwt"`
+	Database         DatabaseConfig         `yaml:"database"`
+	Redis            RedisConfig            `yaml:"redis"`
+	Password         PasswordConfig         `yaml:"password"`
+	InternalSecurity InternalSecurityConfig `yaml:"internal-security"`
 }
 
 type ServerConfig struct {
@@ -41,6 +42,11 @@ type RedisConfig struct {
 
 type PasswordConfig struct {
 	PasswordResetURL string `yaml:"PasswordResetURL"`
+}
+
+type InternalSecurityConfig struct {
+	UserName string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 var AppConfig Config

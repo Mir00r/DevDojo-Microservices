@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	config "github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/constants"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -54,13 +55,38 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func BasicAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		username, password, ok := r.BasicAuth()
-		if !ok || !utils.ValidateBasicAuth(username, password) {
-			http.Error(w, constants.Unauthorized, http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+//func BasicAuthMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		username, password, ok := r.BasicAuth()
+//		if !ok || !utils.ValidateBasicAuth(username, password) {
+//			http.Error(w, constants.Unauthorized, http.StatusUnauthorized)
+//			return
+//		}
+//		next.ServeHTTP(w, r)
+//	})
+//}
+
+// BasicAuthMiddleware validates requests using Basic Auth or API keys
+func BasicAuthMiddleware(c *gin.Context) {
+	// Fetch expected credentials from environment variables
+	expectedUsername := config.AppConfig.InternalSecurity.UserName
+	expectedPassword := config.AppConfig.InternalSecurity.Password
+	//expectedAPIKey := os.Getenv("API_KEY") // API key support
+
+	// Check Basic Auth credentials
+	username, password, hasAuth := c.Request.BasicAuth()
+	if hasAuth && username == expectedUsername && password == expectedPassword {
+		c.Next()
+		return
+	}
+
+	// Check API Key in the headers
+	//apiKey := c.GetHeader("X-API-Key")
+	//if apiKey != "" && apiKey == expectedAPIKey {
+	//	c.Next()
+	//	return
+	//}
+
+	// Unauthorized if no valid credentials
+	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 }
