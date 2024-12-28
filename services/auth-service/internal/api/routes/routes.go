@@ -24,7 +24,10 @@ func SetupRoutes(router *gin.Engine, publicAuthController *controllers.PublicAut
 	{
 		protected.POST("/logout", protectedAuthController.ProtectedLogout)
 		protected.GET("/user-profile", protectedAuthController.ProtectedUserProfile)
+		protected.POST("/mfa/enable", protectedAuthController.EnableMFA)
+		protected.POST("/mfa/verify", protectedAuthController.VerifyMFA)
 	}
+
 	//protected := router.PathPrefix("/protected").Subrouter()
 	//protected.Use(middlewares.JWTMiddleware)
 	//protected.HandleFunc("/v1/user-profile", controllers.ProtectedUserProfile).Methods("GET")

@@ -40,10 +40,14 @@ func main() {
 	// Initialize the controller
 	userRepo := repositories.NewUserRepository(database.DB)
 	tokenRepo := repositories.NewTokenRepository(database.DB)
+	mfaRepo := repositories.NewMFARepository(database.DB)
+
 	authService := services.NewAuthService(userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
+	mfaService := services.NewMFAService(mfaRepo, userRepo)
+
 	publicAuthController := controllers.NewPublicAuthController(authService, tokenService)
-	protectedAuthController := controllers.NewProtectedAuthController(authService, tokenService)
+	protectedAuthController := controllers.NewProtectedAuthController(authService, tokenService, mfaService)
 
 	// Register routes
 	routes.SetupRoutes(router, publicAuthController, protectedAuthController)

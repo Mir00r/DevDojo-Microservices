@@ -3,6 +3,7 @@ package middlewares
 import (
 	"github.com/Mir00r/auth-service/constants"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strings"
 
@@ -30,14 +31,26 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Verify the JWT and extract claims
 		claims, err := utils.VerifyJWT(tokenString)
 		if err != nil {
+			log.Printf("JWT verification error: %v", err)
 			utils.GinErrorResponse(c, http.StatusUnauthorized, constants.ErrInvalidToken)
 			c.Abort()
 			return
 		}
+		log.Printf("Extracted user ID: %s", claims.UserID)
+
+		// Add claims to the Go context
+		ctx := utils.AddClaimsToContext(c.Request.Context(), claims)
 
 		// Inject claims into the Gin context
 		c.Set("userID", claims.UserID)
+		c.Request = c.Request.WithContext(ctx) // Attach the modified context to the request
+
+		log.Printf("Extracted user ID: %s", claims.UserID)
 		c.Next()
+
+		// Inject claims into the Gin context
+		//c.Set("userID", claims.UserID)
+		//c.Next()
 	}
 }
 

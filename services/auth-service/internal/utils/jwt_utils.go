@@ -38,27 +38,6 @@ func GenerateJWT(userID, email, secret string, expiry time.Duration) (string, er
 	return signedToken, nil
 }
 
-// VerifyJWT validates a JWT token and returns the claims if valid.
-//func VerifyJWT(tokenString, secret string) (*JWTClaims, error) {
-//	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-//			return nil, errors.New("unexpected signing method")
-//		}
-//		return []byte(secret), nil
-//	})
-//
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	claims, ok := token.Claims.(*JWTClaims)
-//	if !ok || !token.Valid {
-//		return nil, errors.New("invalid token")
-//	}
-//
-//	return claims, nil
-//}
-
 // VerifyJWT verifies a JWT and returns the claims if valid
 func VerifyJWT(tokenString string) (*JWTClaims, error) {
 	//config.LoadConfig()
@@ -93,14 +72,23 @@ func VerifyJWT(tokenString string) (*JWTClaims, error) {
 }
 
 // AddClaimsToContext adds JWT claims to the request context
-func AddClaimsToContext(ctx context.Context, claims jwt.MapClaims) context.Context {
+func AddClaimsToContext(ctx context.Context, claims *JWTClaims) context.Context {
 	return context.WithValue(ctx, "claims", claims)
 }
 
 // ExtractClaimsFromContext retrieves JWT claims from the request context
-func ExtractClaimsFromContext(ctx context.Context) (jwt.MapClaims, bool) {
-	claims, ok := ctx.Value("claims").(jwt.MapClaims)
-	return claims, ok
+//func ExtractClaimsFromContext(ctx context.Context) (jwt.MapClaims, bool) {
+//	claims, ok := ctx.Value("claims").(jwt.MapClaims)
+//	return claims, ok
+//}
+
+// ExtractClaimsFromContext retrieves JWT claims from the context
+func ExtractClaimsFromContext(ctx context.Context) (*JWTClaims, error) {
+	claims, ok := ctx.Value("claims").(*JWTClaims) // Type assertion to *JWTClaims
+	if !ok {
+		return nil, errors.New("invalid or missing JWT claims in context")
+	}
+	return claims, nil
 }
 
 // ValidateBasicAuth validates the username and password for Basic Authentication

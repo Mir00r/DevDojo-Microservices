@@ -18,6 +18,8 @@ const (
 	ErrInvalidCredential   = "Invalid credentials"
 	ErrTokenInvalidOrReset = "Reset token already used or invalid"
 	ErrTokenInvalidated    = "Token is already invalidated"
+	ErrOTPExpired          = "OTP has expired"
+	ErrInvalidOTP          = "Invalid OTP"
 )
 
 // Error variables for use throughout the project
@@ -36,6 +38,8 @@ var (
 	ErrInvalidCredentialVar   = errors.New(ErrInvalidCredential)
 	ErrTokenInvalidOrResetVar = errors.New(ErrTokenInvalidOrReset)
 	ErrTokenInvalidatedVar    = errors.New(ErrTokenInvalidated)
+	ErrInvalidOTPVar          = errors.New(ErrInvalidOTP)
+	ErrOTPExpiredVar          = errors.New(ErrOTPExpired)
 )
 
 // Success messages
