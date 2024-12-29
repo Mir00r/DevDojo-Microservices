@@ -4,7 +4,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
-	"time"
 )
 
 type Config struct {
@@ -21,8 +20,9 @@ type ServerConfig struct {
 }
 
 type JWTConfig struct {
-	Secret string `yaml:"secret"`
-	Expiry string `yaml:"expiry"`
+	Secret             string `yaml:"secret"`
+	Expiry             string `yaml:"expiry"`
+	RefreshTokenExpiry string `yaml:"refresh-token-expiry"`
 }
 
 type DatabaseConfig struct {
@@ -66,13 +66,4 @@ func LoadConfig(path string) error {
 	}
 	log.Println("Configuration loaded successfully")
 	return nil
-}
-
-func TokenExpiry() time.Duration {
-	// Parse the "24h" string into a time.Duration
-	duration, err := time.ParseDuration(AppConfig.JWT.Expiry)
-	if err != nil {
-		log.Fatalf("Failed to parse JWT expiry duration: %v", err)
-	}
-	return duration
 }

@@ -2,6 +2,8 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"github.com/Mir00r/auth-service/configs"
 	"github.com/golang-jwt/jwt/v4"
@@ -103,4 +105,14 @@ func ValidateBasicAuth(username, password string) bool {
 	}
 
 	return false
+}
+
+// GenerateRefreshToken generates a secure random token for refresh purposes
+func GenerateRefreshToken() (string, error) {
+	bytes := make([]byte, 32) // 32 bytes = 256-bit token
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", errors.New("failed to generate refresh token")
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }

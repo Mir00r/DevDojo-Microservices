@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/Mir00r/auth-service/internal/utils"
@@ -36,26 +37,26 @@ func (ctrl *ProtectedAuthController) ProtectedLogout(c *gin.Context) {
 	// Extract the user ID using the helper function
 	userID, err := utils.ExtractUserIDFromContext(c)
 	if err != nil {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, err.Error())
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	// Extract the token from the Authorization header
 	authHeader := c.GetHeader(constants.Authorization)
 	if authHeader == "" {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, constants.ErrMissingAuthHeader)
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, constants.ErrMissingAuthHeader)
 		return
 	}
 	tokenString := strings.TrimPrefix(authHeader, constants.Bearer)
 
 	// Call the logout service to invalidate the token
 	if err := ctrl.TokenService.Logout(tokenString, userID); err != nil {
-		utils.GinErrorResponse(c, http.StatusInternalServerError, err.Error())
+		utils.ErrorResponseCtx(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// Respond with a success message
-	utils.GinJSONResponse(c, http.StatusOK, gin.H{"message": "Logout successful"})
+	utils.JSONResponseCtx(c, http.StatusOK, constants.MsgLogoutSuccessful)
 }
 
 // ProtectedUserProfile fetches the profile of the currently authenticated user.
@@ -64,19 +65,19 @@ func (ctrl *ProtectedAuthController) ProtectedUserProfile(c *gin.Context) {
 	// Retrieve the user ID from the context
 	userID, exists := c.Get("userID")
 	if !exists {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, constants.ErrUserNotFound)
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, constants.ErrUserNotFound)
 		return
 	}
 
 	// Fetch the user's profile using the AuthService
 	userProfile, err := ctrl.AuthService.GetUserProfile(userID.(string))
 	if err != nil {
-		utils.GinErrorResponse(c, http.StatusInternalServerError, "Failed to fetch user profile")
+		utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToFetchProfile)
 		return
 	}
 
 	// Respond with the user's profile data
-	utils.GinJSONResponse(c, http.StatusOK, userProfile)
+	utils.JSONResponseCtx(c, http.StatusOK, userProfile)
 }
 
 // EnableMFA enables multi-factor authentication (MFA) for the currently authenticated user.
@@ -89,12 +90,12 @@ func (ctrl *ProtectedAuthController) EnableMFA(c *gin.Context) {
 	// Call the MFAService to enable MFA and generate an OTP
 	otp, err := ctrl.MFAService.EnableMFA(userID)
 	if err != nil {
-		utils.GinErrorResponse(c, http.StatusInternalServerError, err.Error())
+		utils.ErrorResponseCtx(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// Respond with the generated OTP and success message
-	utils.GinJSONResponse(c, http.StatusOK, gin.H{
+	utils.JSONResponseCtx(c, http.StatusOK, gin.H{
 		"message": "MFA enabled",
 		"otp":     otp,
 	})
@@ -106,7 +107,7 @@ func (ctrl *ProtectedAuthController) VerifyMFA(c *gin.Context) {
 	// Bind the request payload to the VerifyMFARequest struct
 	var req request.VerifyMFARequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.GinErrorResponse(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
 		return
 	}
 
@@ -116,10 +117,35 @@ func (ctrl *ProtectedAuthController) VerifyMFA(c *gin.Context) {
 
 	// Call the MFAService to verify the OTP
 	if err := ctrl.MFAService.VerifyMFA(userID, req.OTP); err != nil {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, err.Error())
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	// Respond with a success message
-	utils.GinJSONResponse(c, http.StatusOK, gin.H{"message": constants.MFAVerifySuccessful})
+	utils.JSONResponseCtx(c, http.StatusOK, constants.MFAVerifySuccessful)
+}
+
+func (ctrl *ProtectedAuthController) RefreshToken(c *gin.Context) {
+	var req dtos.RefreshTokenRequest
+
+	// Parse JSON request body
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		return
+	}
+
+	// Validate the request
+	if err := services.ValidateRequest(req); err != nil {
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response, err := ctrl.TokenService.RefreshToken(req)
+	if err != nil {
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	// Send success response
+	utils.JSONResponseCtx(c, http.StatusOK, response)
 }

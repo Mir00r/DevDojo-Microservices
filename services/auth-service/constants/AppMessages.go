@@ -25,6 +25,9 @@ const (
 	ErrFailedToConfirmPasswordReset  = "Failed to confirm password reset"
 	ErrFailedToInitiatePasswordReset = "Failed to initiate password reset"
 	ErrFailedToFetchProfile          = "Failed to fetch user profile"
+	ErrFailedToRegisterUser          = "Failed to register user"
+	ErrInvalidOrExpiredRefreshToken  = "Invalid or expired refresh token"
+	ErrSaveToken                     = "Failed to save token"
 )
 
 // Error variables for use throughout the project
@@ -49,6 +52,9 @@ var (
 	ErrFailedToInitiatePasswordResetVar = errors.New(ErrFailedToInitiatePasswordReset)
 	ErrFailedToFetchProfileVar          = errors.New(ErrFailedToFetchProfile)
 	ErrOTPNotFoundVar                   = errors.New(ErrOTPNotFound)
+	ErrInvalidOrExpiredRefreshTokenVar  = errors.New(ErrInvalidOrExpiredRefreshToken)
+	ErrSaveTokenVar                     = errors.New(ErrSaveToken)
+	ErrFailedToRegisterUserVar          = errors.New(ErrFailedToRegisterUser)
 )
 
 // Success messages

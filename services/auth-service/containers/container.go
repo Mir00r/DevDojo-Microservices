@@ -28,7 +28,7 @@ func NewContainer() *Container {
 	mfaRepo := repositories.NewMFARepository(database.DB)
 
 	// Initialize services
-	authService := services.NewAuthService(userRepo)
+	authService := services.NewAuthService(userRepo, tokenRepo)
 	internalAuthService := services.NewInternalAuthService(userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
 	mfaService := services.NewMFAService(mfaRepo, userRepo)

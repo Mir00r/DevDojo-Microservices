@@ -3,8 +3,10 @@ package controllers
 import (
 	"errors"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
+	"github.com/Mir00r/auth-service/internal/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -34,23 +36,23 @@ func NewPublicAuthController(authService *services.AuthService, tokenService *se
 // @Failure 401 {object} map[string]string
 // @Router /v1/public/auth/login [post]
 func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
-	var req request.LoginRequest
+	var req dtos.LoginRequest
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
 		return
 	}
 
 	// Authenticate the user and generate tokens
 	token, err := ctrl.AuthService.Authenticate(req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, constants.ErrGenerateToken)
 		return
 	}
 
 	// Return the generated token
-	c.JSON(http.StatusOK, token)
+	utils.JSONResponseCtx(c, http.StatusOK, token)
 }
 
 // PublicRegister handles user registration requests
@@ -68,18 +70,19 @@ func (ctrl *PublicAuthController) PublicRegister(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
 		return
 	}
 
 	// Register the user
 	if err := ctrl.AuthService.RegisterUser(req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToRegisterUser)
 		return
 	}
 
 	// Return a success message
-	c.JSON(http.StatusCreated, gin.H{"message": constants.MsgUserRegSuccessful})
+	utils.JSONResponseCtx(c, http.StatusCreated, constants.MsgUserRegSuccessful)
 }
 
 // PasswordReset initiates a password reset process for a user
@@ -98,22 +101,22 @@ func (ctrl *PublicAuthController) PasswordReset(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
 		return
 	}
 
 	// Initiate the password reset process
 	if err := ctrl.TokenService.InitiatePasswordReset(req); err != nil {
 		if errors.Is(err, constants.ErrUserNotFoundVar) {
-			c.JSON(http.StatusNotFound, gin.H{"error": constants.ResourceNotFound})
+			utils.ErrorResponseCtx(c, http.StatusNotFound, constants.ResourceNotFound)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToInitiatePasswordReset})
+			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToInitiatePasswordReset)
 		}
 		return
 	}
 
 	// Return a success message
-	c.JSON(http.StatusOK, gin.H{"message": constants.PasswordResetLinkSentSuccessful})
+	utils.JSONResponseCtx(c, http.StatusOK, constants.PasswordResetLinkSentSuccessful)
 }
 
 // ConfirmPasswordReset finalizes the password reset process
@@ -133,19 +136,20 @@ func (ctrl *PublicAuthController) ConfirmPasswordReset(c *gin.Context) {
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
+		utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToInitiatePasswordReset)
 		return
 	}
 
 	// Confirm the password reset
 	if err := ctrl.TokenService.ResetPassword(req); err != nil {
 		if errors.Is(err, constants.ErrUserNotFoundVar) {
-			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrUserNotFound})
+			utils.ErrorResponseCtx(c, http.StatusNotFound, constants.ErrUserNotFound)
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToConfirmPasswordReset})
+			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToConfirmPasswordReset)
 		}
 		return
 	}
 
 	// Return a success message
-	c.JSON(http.StatusOK, gin.H{"message": constants.PasswordResetLinkSentSuccessful})
+	utils.JSONResponseCtx(c, http.StatusOK, constants.PasswordResetLinkSentSuccessful)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	"time"
 
@@ -112,4 +113,68 @@ func (svc *TokenService) Logout(tokenString string, userID string) error {
 		ExpiresAt: time.Now().Add(time.Hour), // Set expiration for blacklisted entry
 	}
 	return svc.TokenRepo.BlacklistToken(token)
+}
+
+// RefreshToken generates a new access token using a valid refresh token
+func (svc *TokenService) RefreshToken(req dtos.RefreshTokenRequest) (*dtos.RefreshTokenResponse, error) {
+	// Validate the refresh token
+	token, err := svc.TokenRepo.FindRefreshToken(req.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	if token == nil || time.Now().After(token.ExpiresAt) {
+		return nil, constants.ErrInvalidOrExpiredRefreshTokenVar
+	}
+
+	// Find the user associated with the refresh token
+	user, err := svc.UserRepo.FindUserByID(token.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, constants.ErrUserNotFoundVar
+	}
+
+	// Generate a new access token
+	accessToken, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, utils.TokenExpiry())
+	if err != nil {
+		return nil, err
+	}
+
+	// Optionally: Rotate the refresh token (generate a new one)
+	newRefreshToken, err := utils.GenerateRefreshToken()
+	if err != nil {
+		return nil, constants.ErrGenerateTokenVar
+	}
+
+	// Update the existing token entry in the database
+	token.Token = accessToken
+	token.RefreshToken = newRefreshToken
+	token.Type = constants.RefreshToken
+	token.ExpiresAt = time.Now().Add(utils.TokenExpiry())
+	token.UpdatedAt = time.Now()
+	token.RefreshTokenExpiresAt = time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry))
+	if err := svc.TokenRepo.UpdateToken(token); err != nil {
+		return nil, err
+	}
+
+	// Save the new refresh token in the database
+	//err = svc.TokenRepo.CreateToken(&entities.Token{
+	//	UserID:                user.ID,
+	//	Token:                 accessToken,
+	//	RefreshToken:          newRefreshToken,
+	//	Type:                  constants.RefreshToken,
+	//	ExpiresAt:             time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry)),
+	//	RefreshTokenExpiresAt: time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry)),
+	//})
+	//if err != nil {
+	//	return nil, constants.ErrSaveTokenVar
+	//}
+
+	return &dtos.RefreshTokenResponse{
+		AccessToken:           accessToken,
+		RefreshToken:          newRefreshToken,
+		ExpiresIn:             utils.TokenExpiry().Microseconds(),                                                 // 2 hour
+		RefreshTokenExpiresIn: int64(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry).Seconds()), // 24 hour
+	}, nil
 }

@@ -2,7 +2,10 @@ package utils
 
 import (
 	"errors"
+	config "github.com/Mir00r/auth-service/configs"
 	"github.com/gin-gonic/gin"
+	"log"
+	"time"
 )
 
 // ExtractUserIDFromContext retrieves the user ID from the Gin context.
@@ -20,4 +23,22 @@ func ExtractUserIDFromContext(c *gin.Context) (string, error) {
 	}
 
 	return userIDStr, nil
+}
+
+func TokenExpiry() time.Duration {
+	// Parse the "24h" string into a time.Duration
+	duration, err := time.ParseDuration(config.AppConfig.JWT.Expiry)
+	if err != nil {
+		log.Fatalf("Failed to parse JWT expiry duration: %v", err)
+	}
+	return duration
+}
+
+func ConvertTokenExpiry(expiry string) time.Duration {
+	// Parse the "24h" string into a time.Duration
+	duration, err := time.ParseDuration(expiry)
+	if err != nil {
+		log.Fatalf("Failed to parse JWT expiry duration: %v", err)
+	}
+	return duration
 }

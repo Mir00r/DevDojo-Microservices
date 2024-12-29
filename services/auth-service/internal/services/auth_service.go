@@ -3,20 +3,29 @@ package services
 import (
 	config "github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
+	"time"
 )
 
 // AuthService encapsulates the business logic for authentication
 type AuthService struct {
-	UserRepo *repositories.UserRepository // Repository for interacting with user data
+	UserRepo  *repositories.UserRepository  // Repository for interacting with user data
+	TokenRepo *repositories.TokenRepository // Repository for interacting with token data
 }
 
 // NewAuthService initializes a new AuthService instance
-func NewAuthService(repo *repositories.UserRepository) *AuthService {
-	return &AuthService{UserRepo: repo}
+func NewAuthService(
+	repo *repositories.UserRepository,
+	tokenRepo *repositories.TokenRepository,
+) *AuthService {
+	return &AuthService{
+		UserRepo:  repo,
+		TokenRepo: tokenRepo,
+	}
 }
 
 // Authenticate validates user credentials and generates a JWT token
@@ -32,7 +41,7 @@ func NewAuthService(repo *repositories.UserRepository) *AuthService {
 // Returns:
 // - A map containing the access token.
 // - An error if authentication fails.
-func (svc *AuthService) Authenticate(req request.LoginRequest) (map[string]string, error) {
+func (svc *AuthService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error) {
 	// Retrieve the user from the database by email
 	user, err := svc.UserRepo.FindUserByEmail(req.Email)
 	if err != nil {
@@ -45,13 +54,37 @@ func (svc *AuthService) Authenticate(req request.LoginRequest) (map[string]strin
 	}
 
 	// Generate a JWT token for the authenticated user
-	token, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, config.TokenExpiry())
+	accessToken, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, utils.TokenExpiry())
 	if err != nil {
 		return nil, constants.ErrGenerateTokenVar
 	}
 
-	// Return the generated access token
-	return map[string]string{"access_token": token}, nil
+	// Generate a refresh token for the user
+	refreshToken, err := utils.GenerateRefreshToken()
+	if err != nil {
+		return nil, constants.ErrGenerateTokenVar
+	}
+
+	// Save the refresh token in the database
+	err = svc.TokenRepo.CreateToken(&entities.Token{
+		UserID:                user.ID,
+		Token:                 refreshToken,
+		RefreshToken:          refreshToken,
+		Type:                  constants.AccessToken,
+		ExpiresAt:             time.Now().Add(utils.TokenExpiry()),
+		RefreshTokenExpiresAt: time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry)),
+	})
+	if err != nil {
+		return nil, constants.ErrSaveTokenVar
+	}
+
+	// Return the LoginResponse
+	return &dtos.LoginResponse{
+		AccessToken:           accessToken,
+		RefreshToken:          refreshToken,
+		ExpiresIn:             int64(utils.TokenExpiry().Seconds()),
+		RefreshTokenExpiresIn: int64(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry).Seconds()),
+	}, nil
 }
 
 // RegisterUser creates a new user account in the system

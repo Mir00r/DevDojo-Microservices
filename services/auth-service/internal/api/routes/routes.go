@@ -40,9 +40,11 @@ func initializeProtectedRoutes(router *gin.Engine, controller *controllers.Prote
 	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
 	{
 		protectedGroup.POST("/logout", controller.ProtectedLogout)
-		protectedGroup.GET("/user-profile", controller.ProtectedUserProfile)
+		protectedGroup.POST("/refresh-token", controller.RefreshToken)
 		protectedGroup.POST("/mfa/enable", controller.EnableMFA)
 		protectedGroup.POST("/mfa/verify", controller.VerifyMFA)
+
+		protectedGroup.GET("/user-profile", controller.ProtectedUserProfile)
 	}
 }
 

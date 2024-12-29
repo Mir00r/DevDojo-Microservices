@@ -23,6 +23,15 @@ func (repo *TokenRepository) SaveResetToken(token string, userID string) error {
 	return repo.DB.Create(&resetToken).Error
 }
 
+// CreateToken saves a refresh token in the database
+func (repo *TokenRepository) CreateToken(token *entities.Token) error {
+	return repo.DB.Create(token).Error
+}
+
+func (repo *TokenRepository) UpdateToken(token *entities.Token) error {
+	return repo.DB.Save(token).Error
+}
+
 func (repo *TokenRepository) MarkTokenAsUsed(token string) error {
 	return repo.DB.Model(&entities.PasswordResetToken{}).
 		Where("token = ?", token).
@@ -42,6 +51,17 @@ func (repo *TokenRepository) FindToken(token string) (*entities.PasswordResetTok
 	return &resetToken, nil
 }
 
+func (repo *TokenRepository) FindRefreshToken(token string) (*entities.Token, error) {
+	var refreshToken entities.Token
+	if err := repo.DB.Where("refresh_token = ?", token).First(&refreshToken).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil // Token not found
+		}
+		return nil, err
+	}
+	return &refreshToken, nil
+}
+
 // BlacklistToken saves a token to the blacklist
 func (repo *TokenRepository) BlacklistToken(token *entities.Token) error {
 	return repo.DB.Create(token).Error
@@ -58,4 +78,9 @@ func (repo *TokenRepository) IsTokenBlacklisted(tokenString string) (bool, error
 		return false, err
 	}
 	return true, nil
+}
+
+// DeleteToken deletes a refresh token (optional, e.g., during logout)
+func (repo *TokenRepository) DeleteToken(token string) error {
+	return repo.DB.Where("token = ?", token).Delete(&entities.Token{}).Error
 }

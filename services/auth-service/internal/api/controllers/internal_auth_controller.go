@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/Mir00r/auth-service/constants"
 	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/Mir00r/auth-service/internal/utils"
@@ -36,19 +37,19 @@ func (ctrl *InternalAuthController) ValidateToken(c *gin.Context) {
 
 	// Validate the incoming request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.GinErrorResponse(c, http.StatusBadRequest, "Invalid request payload")
+		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
 		return
 	}
 
 	// Call the service layer to validate the token
 	response, err := ctrl.InternalAuthService.ValidateToken(req.Token)
 	if err != nil {
-		utils.GinErrorResponse(c, http.StatusUnauthorized, err.Error())
+		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	// Respond with a success response
-	utils.GinJSONResponse(c, http.StatusOK, response)
+	utils.JSONResponseCtx(c, http.StatusOK, response)
 }
 
 // ServiceHealth checks the health status of the authentication service
@@ -64,5 +65,5 @@ func (ctrl *InternalAuthController) ServiceHealth(c *gin.Context) {
 	health := ctrl.InternalAuthService.CheckHealth()
 
 	// Respond with the health status
-	utils.GinJSONResponse(c, http.StatusOK, health)
+	utils.JSONResponseCtx(c, http.StatusOK, health)
 }
