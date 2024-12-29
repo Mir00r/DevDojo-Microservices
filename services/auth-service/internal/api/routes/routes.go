@@ -6,37 +6,52 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRoutes defines all API routes categorized by Public, Protected, and Internal APIs
-func SetupRoutes(router *gin.Engine,
+// SetupRoutes initializes all API routes grouped by category and applies appropriate middlewares.
+func SetupRoutes(
+	router *gin.Engine,
 	publicAuthController *controllers.PublicAuthController,
 	protectedAuthController *controllers.ProtectedAuthController,
 	internalAuthController *controllers.InternalAuthController,
 ) {
+	// Initialize Public API routes
+	initializePublicRoutes(router, publicAuthController)
 
-	// Public APIs
-	public := router.Group("/v1/public/auth")
+	// Initialize Protected API routes
+	initializeProtectedRoutes(router, protectedAuthController)
+
+	// Initialize Internal API routes
+	initializeInternalRoutes(router, internalAuthController)
+}
+
+// initializePublicRoutes sets up routes for Public APIs
+func initializePublicRoutes(router *gin.Engine, controller *controllers.PublicAuthController) {
+	publicGroup := router.Group("/v1/public/auth")
 	{
-		public.POST("/login", publicAuthController.PublicLogin)
-		public.POST("/register", publicAuthController.PublicRegister)
-		public.POST("/password-reset", publicAuthController.PasswordReset)
-		public.POST("/confirm-password-reset", publicAuthController.ConfirmPasswordReset)
+		publicGroup.POST("/login", controller.PublicLogin)
+		publicGroup.POST("/register", controller.PublicRegister)
+		publicGroup.POST("/password-reset", controller.PasswordReset)
+		publicGroup.POST("/confirm-password-reset", controller.ConfirmPasswordReset)
 	}
+}
 
-	// Protected APIs
-	protected := router.Group("/v1/protected/auth")
-	protected.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
+// initializeProtectedRoutes sets up routes for Protected APIs
+func initializeProtectedRoutes(router *gin.Engine, controller *controllers.ProtectedAuthController) {
+	protectedGroup := router.Group("/v1/protected/auth")
+	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
 	{
-		protected.POST("/logout", protectedAuthController.ProtectedLogout)
-		protected.GET("/user-profile", protectedAuthController.ProtectedUserProfile)
-		protected.POST("/mfa/enable", protectedAuthController.EnableMFA)
-		protected.POST("/mfa/verify", protectedAuthController.VerifyMFA)
+		protectedGroup.POST("/logout", controller.ProtectedLogout)
+		protectedGroup.GET("/user-profile", controller.ProtectedUserProfile)
+		protectedGroup.POST("/mfa/enable", controller.EnableMFA)
+		protectedGroup.POST("/mfa/verify", controller.VerifyMFA)
 	}
+}
 
-	// Internal APIs
-	internal := router.Group("/v1/internal/auth")
-	internal.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
+// initializeInternalRoutes sets up routes for Internal APIs
+func initializeInternalRoutes(router *gin.Engine, controller *controllers.InternalAuthController) {
+	internalGroup := router.Group("/v1/internal/auth")
+	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
 	{
-		internal.POST("/validate-token", internalAuthController.ValidateToken)
-		internal.GET("/service-health", internalAuthController.ServiceHealth)
+		internalGroup.POST("/validate-token", controller.ValidateToken)
+		internalGroup.GET("/service-health", controller.ServiceHealth)
 	}
 }

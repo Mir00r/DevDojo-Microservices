@@ -9,89 +9,143 @@ import (
 	"net/http"
 )
 
+// PublicAuthController manages public-facing authentication APIs
 type PublicAuthController struct {
-	AuthService  *services.AuthService
-	TokenService *services.TokenService
+	AuthService  *services.AuthService  // Handles authentication-related logic
+	TokenService *services.TokenService // Handles token-related logic
 }
 
+// NewPublicAuthController initializes a new PublicAuthController instance
 func NewPublicAuthController(authService *services.AuthService, tokenService *services.TokenService) *PublicAuthController {
-	return &PublicAuthController{AuthService: authService, TokenService: tokenService}
+	return &PublicAuthController{
+		AuthService:  authService,
+		TokenService: tokenService,
+	}
 }
 
-// PublicLogin handles user login and issues JWT
+// PublicLogin handles user login requests and issues JWT tokens
+// @Summary Login a user and return an access token
+// @Tags Public Authentication
+// @Accept json
+// @Produce json
+// @Param request body request.LoginRequest true "Login request payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /v1/public/auth/login [post]
 func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
 	var req request.LoginRequest
+
+	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
 		return
 	}
 
-	// Authenticate the user
+	// Authenticate the user and generate tokens
 	token, err := ctrl.AuthService.Authenticate(req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Return the generated token
 	c.JSON(http.StatusOK, token)
 }
 
-// PublicRegister handles user registration
+// PublicRegister handles user registration requests
+// @Summary Register a new user
+// @Tags Public Authentication
+// @Accept json
+// @Produce json
+// @Param request body request.RegisterRequest true "Registration request payload"
+// @Success 201 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /v1/public/auth/register [post]
 func (ctrl *PublicAuthController) PublicRegister(c *gin.Context) {
 	var req request.RegisterRequest
+
+	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
 		return
 	}
 
 	// Register the user
-	err := ctrl.AuthService.RegisterUser(req)
-	if err != nil {
+	if err := ctrl.AuthService.RegisterUser(req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
+	// Return a success message
+	c.JSON(http.StatusCreated, gin.H{"message": constants.MsgUserRegSuccessful})
 }
 
+// PasswordReset initiates a password reset process for a user
+// @Summary Initiate password reset
+// @Tags Public Authentication
+// @Accept json
+// @Produce json
+// @Param request body request.PasswordResetRequest true "Password reset request payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /v1/public/auth/password-reset [post]
 func (ctrl *PublicAuthController) PasswordReset(c *gin.Context) {
 	var req request.PasswordResetRequest
+
+	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
 		return
 	}
 
-	// Call the TokenService to initiate the password reset
-	err := ctrl.TokenService.InitiatePasswordReset(req)
-	if err != nil {
+	// Initiate the password reset process
+	if err := ctrl.TokenService.InitiatePasswordReset(req); err != nil {
 		if errors.Is(err, constants.ErrUserNotFoundVar) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ResourceNotFound})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate password reset"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToInitiatePasswordReset})
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset link sent successfully"})
+	// Return a success message
+	c.JSON(http.StatusOK, gin.H{"message": constants.PasswordResetLinkSentSuccessful})
 }
 
+// ConfirmPasswordReset finalizes the password reset process
+// @Summary Confirm password reset
+// @Tags Public Authentication
+// @Accept json
+// @Produce json
+// @Param request body request.ConfirmPasswordResetRequest true "Confirm password reset request payload"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /v1/public/auth/confirm-password-reset [post]
 func (ctrl *PublicAuthController) ConfirmPasswordReset(c *gin.Context) {
 	var req request.ConfirmPasswordResetRequest
+
+	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
 		return
 	}
 
-	// Call the TokenService to confirm the password reset
-	err := ctrl.TokenService.ResetPassword(req)
-	if err != nil {
+	// Confirm the password reset
+	if err := ctrl.TokenService.ResetPassword(req); err != nil {
 		if errors.Is(err, constants.ErrUserNotFoundVar) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": constants.ErrUserNotFound})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to confirm password reset"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToConfirmPasswordReset})
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset link confirm successfully"})
+	// Return a success message
+	c.JSON(http.StatusOK, gin.H{"message": constants.PasswordResetLinkSentSuccessful})
 }

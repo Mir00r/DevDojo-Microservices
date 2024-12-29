@@ -1,15 +1,23 @@
 package utils
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
-func GetUserId(c *gin.Context) any {
+// ExtractUserIDFromContext retrieves the user ID from the Gin context.
+func ExtractUserIDFromContext(c *gin.Context) (string, error) {
+	// Retrieve the user ID from the context
 	userID, exists := c.Get("userID")
 	if !exists {
-		GinErrorResponse(c, http.StatusUnauthorized, "User ID not found")
-		return ""
+		return "", errors.New("user ID not found in context")
 	}
-	return userID
+
+	// Type assertion to ensure userID is a string
+	userIDStr, ok := userID.(string)
+	if !ok {
+		return "", errors.New("invalid user ID type")
+	}
+
+	return userIDStr, nil
 }

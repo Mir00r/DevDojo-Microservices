@@ -10,7 +10,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-func RunMigrations(migrationPath string, dsn string) {
+func RunMigrations(migrationPath string, dsn string) error {
 	// Convert the Windows path to a valid URL format
 	if os.PathSeparator == '\\' {
 		migrationPath = strings.ReplaceAll(migrationPath, "\\", "/")
@@ -32,4 +32,5 @@ func RunMigrations(migrationPath string, dsn string) {
 	}
 
 	log.Println("Migrations applied successfully")
+	return err
 }

@@ -51,17 +51,21 @@ type InternalSecurityConfig struct {
 
 var AppConfig Config
 
-func LoadConfig(path string) {
+func LoadConfig(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatalf("Failed to open config file: %v", err)
+		return err
 	}
 	defer file.Close()
 
 	decoder := yaml.NewDecoder(file)
 	if err := decoder.Decode(&AppConfig); err != nil {
 		log.Fatalf("Failed to decode config file: %v", err)
+		return err
 	}
+	log.Println("Configuration loaded successfully")
+	return nil
 }
 
 func TokenExpiry() time.Duration {

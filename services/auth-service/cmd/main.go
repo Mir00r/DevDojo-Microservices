@@ -1,66 +1,65 @@
 package main
 
 import (
-	"github.com/Mir00r/auth-service/configs"
-	"github.com/Mir00r/auth-service/db"
-	"github.com/Mir00r/auth-service/internal/api/controllers"
+	config "github.com/Mir00r/auth-service/configs"
+	"github.com/Mir00r/auth-service/containers"
+	database "github.com/Mir00r/auth-service/db"
 	"github.com/Mir00r/auth-service/internal/api/routes"
-	"github.com/Mir00r/auth-service/internal/repositories"
-	"github.com/Mir00r/auth-service/internal/services"
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Load configuration
-	//config.LoadConfig()
+	// Step 1: Load Configuration
+	configPath := getConfigPath()
+	if err := config.LoadConfig(configPath); err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 
-	// Initialize database
-	//dsn := config.GetConfig().DatabaseDSN
-	//database.InitDatabase(dsn)
+	// Step 2: Initialize Database
+	if err := database.Connect(); err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
 
-	// Load the configuration file
+	// Step 3: Run Database Migrations
+	migrationPath, _ := database.MigrationPath()
+	log.Printf("Resolved migration path: %s", migrationPath)
+	if err := database.RunMigrations(migrationPath, config.AppConfig.Database.DSN); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	// Step 4: Initialize Dependencies
+	appContainer := containers.NewContainer()
+
+	// Step 5: Setup Router
+	router := gin.Default()
+	routes.SetupRoutes(router,
+		appContainer.PublicAuthController, appContainer.ProtectedAuthController,
+		appContainer.InternalAuthController,
+	)
+
+	// Step 6: Start Server
+	startServer(router)
+}
+
+// getConfigPath determines the configuration file path
+func getConfigPath() string {
 	configPath := "./configs/config.yaml"
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		configPath = envPath
 	}
-	config.LoadConfig(configPath)
+	return configPath
+}
 
-	// Connect to the database
-	database.Connect()
-
-	// Run migrations
-	//database.RunMigrations(config.GetConfig().MigrationPath, dsn)
-	database.RunMigrations(database.MigrationPath(), config.AppConfig.Database.DSN)
-
-	// Create a new Gin router
-	router := gin.Default()
-
-	// Initialize the controller
-	userRepo := repositories.NewUserRepository(database.DB)
-	tokenRepo := repositories.NewTokenRepository(database.DB)
-	mfaRepo := repositories.NewMFARepository(database.DB)
-
-	authService := services.NewAuthService(userRepo)
-	internalAuthService := services.NewInternalAuthService(userRepo)
-	tokenService := services.NewTokenService(tokenRepo, userRepo)
-	mfaService := services.NewMFAService(mfaRepo, userRepo)
-
-	publicAuthController := controllers.NewPublicAuthController(authService, tokenService)
-	protectedAuthController := controllers.NewProtectedAuthController(authService, tokenService, mfaService)
-	internalAuthController := controllers.NewInternalAuthController(internalAuthService)
-
-	// Register routes
-	routes.SetupRoutes(router, publicAuthController, protectedAuthController, internalAuthController)
-
-	// Get the port from environment variable or default to 8081
+// startServer starts the Gin server on the configured port
+func startServer(router *gin.Engine) {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8081"
+		port = "8081" // Default port
 	}
 
-	// Start the server
 	log.Printf("Starting server on port %s\n", port)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

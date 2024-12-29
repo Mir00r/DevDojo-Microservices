@@ -40,22 +40,6 @@ func (repo *UserRepository) FindUserByEmail(email string) (*entities.User, error
 		}
 		return nil, err
 	}
-
-	//log.Printf("Found user: %+v", user)
-
-	//var result map[string]interface{}
-	//if err := repo.DB.Raw("SELECT * FROM auth.users WHERE email = ?", email).Scan(&result).Error; err != nil {
-	//	log.Fatalf("Failed to execute raw query: %v", err)
-	//}
-	//log.Printf("Raw query result: %+v", result)
-	//
-	//if err := repo.DB.Where("email = ?", email).First(&user).Error; err != nil {
-	//	log.Printf("After query the user from DB: %v\n using email %v", err, email)
-	//	if errors.Is(err, gorm.ErrRecordNotFound) {
-	//		return nil, nil // Return nil for user if not found
-	//	}
-	//	return nil, err
-	//}
 	return &user, nil
 }
 

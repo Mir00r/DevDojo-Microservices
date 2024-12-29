@@ -48,23 +48,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		log.Printf("Extracted user ID: %s", claims.UserID)
 		c.Next()
-
-		// Inject claims into the Gin context
-		//c.Set("userID", claims.UserID)
-		//c.Next()
 	}
 }
-
-//func BasicAuthMiddleware(next http.Handler) http.Handler {
-//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-//		username, password, ok := r.BasicAuth()
-//		if !ok || !utils.ValidateBasicAuth(username, password) {
-//			http.Error(w, constants.Unauthorized, http.StatusUnauthorized)
-//			return
-//		}
-//		next.ServeHTTP(w, r)
-//	})
-//}
 
 // BasicAuthMiddleware validates requests using Basic Auth or API keys
 func BasicAuthMiddleware(c *gin.Context) {
