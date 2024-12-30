@@ -11,19 +11,23 @@ import (
 	"time"
 )
 
-// AuthService encapsulates the business logic for authentication
-type AuthService struct {
-	UserRepo  *repositories.UserRepository  // Repository for interacting with user data
-	TokenRepo *repositories.TokenRepository // Repository for interacting with token data
+// AuthService defines the methods for authentication
+type AuthService interface {
+	Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error)
+	RegisterUser(req request.RegisterRequest) error
+	GetUserProfile(userID string) (*entities.User, error)
 }
 
-// NewAuthService initializes a new AuthService instance
-func NewAuthService(
-	repo *repositories.UserRepository,
-	tokenRepo *repositories.TokenRepository,
-) *AuthService {
-	return &AuthService{
-		UserRepo:  repo,
+// authService is the concrete implementation of AuthService
+type authService struct {
+	UserRepo  repositories.UserRepository  // Repository for user data
+	TokenRepo repositories.TokenRepository // Repository for token data
+}
+
+// NewAuthService initializes a new instance of AuthService
+func NewAuthService(userRepo repositories.UserRepository, tokenRepo repositories.TokenRepository) AuthService {
+	return &authService{
+		UserRepo:  userRepo,
 		TokenRepo: tokenRepo,
 	}
 }
@@ -41,7 +45,7 @@ func NewAuthService(
 // Returns:
 // - A map containing the access token.
 // - An error if authentication fails.
-func (svc *AuthService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error) {
+func (svc *authService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error) {
 	// Retrieve the user from the database by email
 	user, err := svc.UserRepo.FindUserByEmail(req.Email)
 	if err != nil {
@@ -98,7 +102,7 @@ func (svc *AuthService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse
 //
 // Returns:
 // - An error if registration fails.
-func (svc *AuthService) RegisterUser(req request.RegisterRequest) error {
+func (svc *authService) RegisterUser(req request.RegisterRequest) error {
 	// Hash the user's password
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
@@ -132,7 +136,7 @@ func (svc *AuthService) RegisterUser(req request.RegisterRequest) error {
 // Returns:
 // - A pointer to the User entity.
 // - An error if the user does not exist or retrieval fails.
-func (svc *AuthService) GetUserProfile(userID string) (*entities.User, error) {
+func (svc *authService) GetUserProfile(userID string) (*entities.User, error) {
 	// Retrieve the user by their ID
 	user, err := svc.UserRepo.FindUserByID(userID)
 	if err != nil {

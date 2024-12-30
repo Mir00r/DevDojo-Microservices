@@ -11,11 +11,11 @@ import (
 
 // InternalAuthController handles internal APIs related to authentication
 type InternalAuthController struct {
-	InternalAuthService *services.InternalAuthService
+	InternalAuthService services.InternalAuthService
 }
 
 // NewInternalAuthController initializes a new InternalAuthController with its dependencies
-func NewInternalAuthController(internalAuthService *services.InternalAuthService) *InternalAuthController {
+func NewInternalAuthController(internalAuthService services.InternalAuthService) *InternalAuthController {
 	return &InternalAuthController{
 		InternalAuthService: internalAuthService,
 	}

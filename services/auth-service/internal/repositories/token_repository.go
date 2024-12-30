@@ -10,8 +10,8 @@ type TokenRepository struct {
 	DB *gorm.DB
 }
 
-func NewTokenRepository(db *gorm.DB) *TokenRepository {
-	return &TokenRepository{DB: db}
+func NewTokenRepository(db *gorm.DB) TokenRepository {
+	return TokenRepository{DB: db}
 }
 
 // SaveResetToken saves a password reset token in the database

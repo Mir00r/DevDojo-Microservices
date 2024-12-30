@@ -13,12 +13,12 @@ import (
 
 // PublicAuthController manages public-facing authentication APIs
 type PublicAuthController struct {
-	AuthService  *services.AuthService  // Handles authentication-related logic
-	TokenService *services.TokenService // Handles token-related logic
+	AuthService  services.AuthService           // Handles authentication-related logic
+	TokenService services.TokenServiceInterface // Handles token-related logic
 }
 
 // NewPublicAuthController initializes a new PublicAuthController instance
-func NewPublicAuthController(authService *services.AuthService, tokenService *services.TokenService) *PublicAuthController {
+func NewPublicAuthController(authService services.AuthService, tokenService services.TokenServiceInterface) *PublicAuthController {
 	return &PublicAuthController{
 		AuthService:  authService,
 		TokenService: tokenService,
@@ -47,7 +47,17 @@ func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
 	// Authenticate the user and generate tokens
 	token, err := ctrl.AuthService.Authenticate(req)
 	if err != nil {
-		utils.ErrorResponseCtx(c, http.StatusUnauthorized, constants.ErrGenerateToken)
+		// Handle different error types
+		switch {
+		case errors.Is(err, constants.ErrInvalidCredentials):
+			utils.ErrorResponseCtx(c, http.StatusUnauthorized, constants.ErrInvalidCredentials.Error())
+		case errors.Is(err, constants.ErrGenerateTokenVar):
+			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrGenerateTokenVar.Error())
+		case errors.Is(err, constants.ErrSaveTokenVar):
+			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrSaveTokenVar.Error())
+		default:
+			utils.ErrorResponseCtx(c, http.StatusInternalServerError, "An unknown error occurred")
+		}
 		return
 	}
 

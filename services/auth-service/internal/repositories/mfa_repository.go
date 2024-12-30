@@ -10,8 +10,8 @@ type MFARepository struct {
 	DB *gorm.DB
 }
 
-func NewMFARepository(db *gorm.DB) *MFARepository {
-	return &MFARepository{DB: db}
+func NewMFARepository(db *gorm.DB) MFARepository {
+	return MFARepository{DB: db}
 }
 
 func (repo *MFARepository) SaveMFA(userID, otp string, expiry time.Time) error {

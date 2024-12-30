@@ -13,8 +13,8 @@ type UserRepository struct {
 }
 
 // NewUserRepository creates a new instance of UserRepository
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{DB: db}
+func NewUserRepository(db *gorm.DB) UserRepository {
+	return UserRepository{DB: db}
 }
 
 // CreateUser inserts a new user record into the database

@@ -13,16 +13,16 @@ import (
 
 // ProtectedAuthController handles protected API actions that require authentication and authorization.
 type ProtectedAuthController struct {
-	AuthService  *services.AuthService  // Handles user-related operations
-	TokenService *services.TokenService // Handles token-related operations
-	MFAService   *services.MFAService   // Handles multi-factor authentication operations
+	AuthService  services.AuthService           // Handles user-related operations
+	TokenService services.TokenServiceInterface // Handles token-related operations
+	MFAService   services.MFAService            // Handles multi-factor authentication operations
 }
 
 // NewProtectedAuthController creates a new instance of ProtectedAuthController.
 func NewProtectedAuthController(
-	authService *services.AuthService,
-	tokenService *services.TokenService,
-	mfaService *services.MFAService,
+	authService services.AuthService,
+	tokenService services.TokenServiceInterface,
+	mfaService services.MFAService,
 ) *ProtectedAuthController {
 	return &ProtectedAuthController{
 		AuthService:  authService,

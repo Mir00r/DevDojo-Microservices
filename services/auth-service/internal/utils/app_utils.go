@@ -5,6 +5,7 @@ import (
 	config "github.com/Mir00r/auth-service/configs"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http/httptest"
 	"time"
 )
 
@@ -41,4 +42,12 @@ func ConvertTokenExpiry(expiry string) time.Duration {
 		log.Fatalf("Failed to parse JWT expiry duration: %v", err)
 	}
 	return duration
+}
+
+// CreateTestContext initializes a mock Gin context for testing
+func CreateTestContext(w *httptest.ResponseRecorder) *gin.Context {
+	// Create a mock Gin context with the given ResponseRecorder
+	c, _ := gin.CreateTestContext(w)
+
+	return c
 }

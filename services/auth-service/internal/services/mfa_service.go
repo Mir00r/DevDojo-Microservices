@@ -10,22 +10,27 @@ import (
 	"time"
 )
 
+type MFAService interface {
+	EnableMFA(userID string) (string, error)
+	VerifyMFA(userID, otp string) error
+}
+
 // MFAService handles multi-factor authentication logic
-type MFAService struct {
-	MFARepo  *repositories.MFARepository  // Repository for MFA-related operations
-	UserRepo *repositories.UserRepository // Repository for user-related operations
+type mfaService struct {
+	MFARepo  repositories.MFARepository  // Repository for MFA-related operations
+	UserRepo repositories.UserRepository // Repository for user-related operations
 }
 
 // NewMFAService creates a new instance of MFAService
-func NewMFAService(mfaRepo *repositories.MFARepository, userRepo *repositories.UserRepository) *MFAService {
-	return &MFAService{
+func NewMFAService(mfaRepo repositories.MFARepository, userRepo repositories.UserRepository) MFAService {
+	return &mfaService{
 		MFARepo:  mfaRepo,
 		UserRepo: userRepo,
 	}
 }
 
 // EnableMFA generates and stores an OTP for enabling MFA and sends it to the user's email
-func (svc *MFAService) EnableMFA(userID string) (string, error) {
+func (svc *mfaService) EnableMFA(userID string) (string, error) {
 	// Validate user existence
 	user, err := svc.UserRepo.FindUserByID(userID)
 	if err != nil {
@@ -59,7 +64,7 @@ func (svc *MFAService) EnableMFA(userID string) (string, error) {
 }
 
 // VerifyMFA checks if the provided OTP matches the stored OTP for the user and marks it as used
-func (svc *MFAService) VerifyMFA(userID, otp string) error {
+func (svc *mfaService) VerifyMFA(userID, otp string) error {
 	// Retrieve the latest unused MFA record for the user
 	mfa, err := svc.MFARepo.GetUnusedMFAByUserId(userID)
 	if err != nil {

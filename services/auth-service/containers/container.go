@@ -9,12 +9,12 @@ import (
 
 // Container struct holds all application dependencies
 type Container struct {
-	UserRepository          *repositories.UserRepository
-	TokenRepository         *repositories.TokenRepository
-	MFARepository           *repositories.MFARepository
-	AuthService             *services.AuthService
-	TokenService            *services.TokenService
-	MFAService              *services.MFAService
+	UserRepository          repositories.UserRepository
+	TokenRepository         repositories.TokenRepository
+	MFARepository           repositories.MFARepository
+	AuthService             services.AuthService
+	TokenService            services.TokenServiceInterface
+	MFAService              services.MFAService
 	PublicAuthController    *controllers.PublicAuthController
 	ProtectedAuthController *controllers.ProtectedAuthController
 	InternalAuthController  *controllers.InternalAuthController

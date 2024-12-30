@@ -15,12 +15,22 @@ import (
 	"log"
 )
 
-type TokenService struct {
-	TokenRepo *repositories.TokenRepository
-	UserRepo  *repositories.UserRepository
+// TokenServiceInterface defines the methods for the TokenService
+type TokenServiceInterface interface {
+	InitiatePasswordReset(req services.PasswordResetRequest) error
+	ResetPassword(req services.ConfirmPasswordResetRequest) error
+	Logout(tokenString string, userID string) error
+	RefreshToken(req dtos.RefreshTokenRequest) (*dtos.RefreshTokenResponse, error)
 }
 
-func NewTokenService(repo *repositories.TokenRepository, userRepo *repositories.UserRepository) *TokenService {
+// TokenService is the concrete implementation of TokenServiceInterface
+type TokenService struct {
+	TokenRepo repositories.TokenRepository
+	UserRepo  repositories.UserRepository
+}
+
+// NewTokenService initializes a new instance of TokenService
+func NewTokenService(repo repositories.TokenRepository, userRepo repositories.UserRepository) TokenServiceInterface {
 	return &TokenService{TokenRepo: repo, UserRepo: userRepo}
 }
 
