@@ -9,7 +9,6 @@ import (
 
 	dtos "github.com/Mir00r/auth-service/internal/models/dtos"
 	entities "github.com/Mir00r/auth-service/internal/models/entities"
-	services "github.com/Mir00r/auth-service/internal/models/request"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -67,7 +66,7 @@ func (mr *MockAuthServiceMockRecorder) GetUserProfile(userID interface{}) *gomoc
 }
 
 // RegisterUser mocks base method.
-func (m *MockAuthService) RegisterUser(req services.RegisterRequest) error {
+func (m *MockAuthService) RegisterUser(req dtos.RegisterRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterUser", req)
 	ret0, _ := ret[0].(error)

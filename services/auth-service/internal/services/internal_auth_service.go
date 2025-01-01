@@ -1,15 +1,17 @@
 package services
 
 import (
-	"errors"
-	services "github.com/Mir00r/auth-service/internal/models/response"
+	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/errors"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
+	"net/http"
 	"time"
 )
 
 type InternalAuthService interface {
-	ValidateToken(token string) (*services.ValidateTokenResponse, error)
+	ValidateToken(token string) (*dtos.ValidateTokenResponse, error)
 	CheckHealth() map[string]string
 }
 
@@ -32,15 +34,15 @@ func NewInternalAuthService(userRepo repositories.UserRepository) InternalAuthSe
 // Returns:
 // - A pointer to ValidateTokenResponse containing the validation result, user ID, and expiration details.
 // - An error if the token is invalid or any other issue occurs during validation.
-func (svc *internalAuthService) ValidateToken(token string) (*services.ValidateTokenResponse, error) {
+func (svc *internalAuthService) ValidateToken(token string) (*dtos.ValidateTokenResponse, error) {
 	// Verify the JWT token and extract claims
 	claims, err := utils.VerifyJWT(token)
 	if err != nil {
-		return nil, errors.New("invalid token")
+		return nil, errors.NewAppError(http.StatusUnauthorized, constants.ErrInvalidToken, err)
 	}
 
 	// Build and return the validation response
-	return &services.ValidateTokenResponse{
+	return &dtos.ValidateTokenResponse{
 		IsValid: true,
 		UserID:  claims.UserID,
 		Expires: time.Unix(claims.ExpiresAt.Unix(), 0).Format(time.RFC3339), // Convert expiration to RFC3339 format

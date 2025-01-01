@@ -35,9 +35,10 @@ func GinJSONResponse(c *gin.Context, status int, payload interface{}) {
 // ErrorResponseCtx sends a JSON error response with a status code
 func ErrorResponseCtx(c *gin.Context, status int, message string) {
 	c.JSON(status, dtos.APIResponse{
-		Code:    status,
-		Error:   true,
-		Message: message,
+		Error:      true,
+		Code:       status,
+		CodeStatus: http.StatusText(status),
+		Message:    message,
 	})
 }
 

@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/Mir00r/auth-service/internal/api/controllers"
-	"github.com/Mir00r/auth-service/internal/api/middlewares"
+	"github.com/Mir00r/auth-service/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,6 +13,9 @@ func SetupRoutes(
 	protectedAuthController *controllers.ProtectedAuthController,
 	internalAuthController *controllers.InternalAuthController,
 ) {
+	// Attach exception middleware
+	router.Use(middlewares.ErrorHandler())
+
 	// Initialize Public API routes
 	initializePublicRoutes(router, publicAuthController)
 

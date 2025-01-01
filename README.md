@@ -72,23 +72,36 @@ project-root/
 
 ## Detailed Folder Structure for Each Microservice
 ```
-auth-service/
+<service name>-service/
 │
 ├── cmd/                      # Main entry points for the service
 │   └── main.go               # Main file to start the service
-│
+├── config/               # Service-specific configuration
+│       ├── app_config.go
+│       └── env/              # Environment variables handling
+│── constants/               
+│       ├── app_constant.go
+|── containers/               
+│       ├── container.go
+|── errors/               
+│       ├── errors.go
+|── middlewares/               
+│       ├── error_middleware.go
+|── routes/               
+│       ├── routes.go
 ├── internal/                 # Internal application code (not accessible externally)
 │   ├── api/                  # API layer
 │   │   ├── controllers/      # REST API controllers (e.g., login, MFA)
-│   │   ├── middlewares/      # Request middlewares (e.g., JWT validation)
-│   │   └── routes.go         # Route definitions
 │   │
 │   ├── services/             # Business logic (e.g., token generation, authentication)
 │   │   ├── auth.go
 │   │   └── user.go
 │   │
 │   ├── models/               # Data models (e.g., User, Token)
-│   │   └── user.go
+│   |    ├── dtos/
+│   │       └── sample_dto.go
+│   |    ├── entities/
+│   │       └── sample_entities.go
 │   │
 │   ├── repositories/         # Database access logic (e.g., PostgreSQL queries)
 │   │   └── user_repository.go
@@ -97,13 +110,12 @@ auth-service/
 │   │   ├── bcrypt.go
 │   │   └── jwt.go
 │   │
-│   └── config/               # Service-specific configuration
-│       ├── app_config.go
-│       └── env/              # Environment variables handling
 │
 ├── test/                     # Unit and integration tests
 │   ├── auth_test.go
 │   └── mfa_test.go
+├── scripts/                     
+│   ├── migration_gen.go
 │
 ├── db/                       # Database migrations and seeds
 │   ├── migrations/
@@ -111,6 +123,8 @@ auth-service/
 │   │   └── 002_create_tokens_table.sql
 │   └── seeds/
 │       └── sample_data.sql
+|   └── migration.go
+|   └── init.go
 │
 ├── build/                    # Build configurations
 │   ├── Dockerfile            # Dockerfile for the microservice

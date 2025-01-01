@@ -8,7 +8,6 @@ import (
 	reflect "reflect"
 
 	dtos "github.com/Mir00r/auth-service/internal/models/dtos"
-	services "github.com/Mir00r/auth-service/internal/models/request"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,7 +35,7 @@ func (m *MockTokenServiceInterface) EXPECT() *MockTokenServiceInterfaceMockRecor
 }
 
 // InitiatePasswordReset mocks base method.
-func (m *MockTokenServiceInterface) InitiatePasswordReset(req services.PasswordResetRequest) error {
+func (m *MockTokenServiceInterface) InitiatePasswordReset(req dtos.PasswordResetRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InitiatePasswordReset", req)
 	ret0, _ := ret[0].(error)
@@ -79,7 +78,7 @@ func (mr *MockTokenServiceInterfaceMockRecorder) RefreshToken(req interface{}) *
 }
 
 // ResetPassword mocks base method.
-func (m *MockTokenServiceInterface) ResetPassword(req services.ConfirmPasswordResetRequest) error {
+func (m *MockTokenServiceInterface) ResetPassword(req dtos.ConfirmPasswordResetRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResetPassword", req)
 	ret0, _ := ret[0].(error)

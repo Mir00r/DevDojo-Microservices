@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"errors"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/errors"
 	"github.com/Mir00r/auth-service/internal/models/dtos"
-	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/Mir00r/auth-service/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -40,24 +39,14 @@ func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
-	// Authenticate the user and generate tokens
+	// Authenticate the user
 	token, err := ctrl.AuthService.Authenticate(req)
-	if err != nil {
-		// Handle different error types
-		switch {
-		case errors.Is(err, constants.ErrInvalidCredentials):
-			utils.ErrorResponseCtx(c, http.StatusUnauthorized, constants.ErrInvalidCredentials.Error())
-		case errors.Is(err, constants.ErrGenerateTokenVar):
-			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrGenerateTokenVar.Error())
-		case errors.Is(err, constants.ErrSaveTokenVar):
-			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrSaveTokenVar.Error())
-		default:
-			utils.ErrorResponseCtx(c, http.StatusInternalServerError, "An unknown error occurred")
-		}
+	if err != nil || token == nil {
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -76,18 +65,17 @@ func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /v1/public/auth/register [post]
 func (ctrl *PublicAuthController) PublicRegister(c *gin.Context) {
-	var req request.RegisterRequest
+	var req dtos.RegisterRequest
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	// Register the user
 	if err := ctrl.AuthService.RegisterUser(req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToRegisterUser)
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -107,21 +95,17 @@ func (ctrl *PublicAuthController) PublicRegister(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /v1/public/auth/password-reset [post]
 func (ctrl *PublicAuthController) PasswordReset(c *gin.Context) {
-	var req request.PasswordResetRequest
+	var req dtos.PasswordResetRequest
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	// Initiate the password reset process
 	if err := ctrl.TokenService.InitiatePasswordReset(req); err != nil {
-		if errors.Is(err, constants.ErrUserNotFoundVar) {
-			utils.ErrorResponseCtx(c, http.StatusNotFound, constants.ResourceNotFound)
-		} else {
-			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToInitiatePasswordReset)
-		}
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -141,22 +125,17 @@ func (ctrl *PublicAuthController) PasswordReset(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /v1/public/auth/confirm-password-reset [post]
 func (ctrl *PublicAuthController) ConfirmPasswordReset(c *gin.Context) {
-	var req request.ConfirmPasswordResetRequest
+	var req dtos.ConfirmPasswordResetRequest
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": constants.ErrInvalidRqPayload})
-		utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToInitiatePasswordReset)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	// Confirm the password reset
 	if err := ctrl.TokenService.ResetPassword(req); err != nil {
-		if errors.Is(err, constants.ErrUserNotFoundVar) {
-			utils.ErrorResponseCtx(c, http.StatusNotFound, constants.ErrUserNotFound)
-		} else {
-			utils.ErrorResponseCtx(c, http.StatusInternalServerError, constants.ErrFailedToConfirmPasswordReset)
-		}
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 

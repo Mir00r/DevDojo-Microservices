@@ -1,17 +1,19 @@
 package services
 
 import (
-	"errors"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/errors"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
 	"log"
+	"net/http"
 	"time"
 )
 
 type MFAService interface {
-	EnableMFA(userID string) (string, error)
+	EnableMFA(userID string) (*dtos.EnableMFAResponse, error)
 	VerifyMFA(userID, otp string) error
 }
 
@@ -30,12 +32,12 @@ func NewMFAService(mfaRepo repositories.MFARepository, userRepo repositories.Use
 }
 
 // EnableMFA generates and stores an OTP for enabling MFA and sends it to the user's email
-func (svc *mfaService) EnableMFA(userID string) (string, error) {
+func (svc *mfaService) EnableMFA(userID string) (*dtos.EnableMFAResponse, error) {
 	// Validate user existence
 	user, err := svc.UserRepo.FindUserByID(userID)
 	if err != nil {
 		log.Printf("Failed to fetch user: %v", err)
-		return "", errors.New("user not found")
+		return nil, errors.NewAppError(http.StatusNotFound, constants.ErrUserNotFound, err)
 	}
 
 	// Generate OTP
@@ -51,16 +53,20 @@ func (svc *mfaService) EnableMFA(userID string) (string, error) {
 	// Save OTP in the database
 	if err := svc.MFARepo.CreateMFA(mfa); err != nil {
 		log.Printf("Failed to save MFA record: %v", err)
-		return "", errors.New("failed to enable MFA")
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToEnableMFA, err)
 	}
 
 	// Send OTP to the user's email
 	if err := utils.SendOTPEmail(user.Email, otp); err != nil {
 		log.Printf("Failed to send OTP email: %v", err)
-		return "", errors.New("failed to send OTP email")
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToSendOTPEmail, err)
 	}
 
-	return otp, nil
+	// Return the EnableMFAResponse object
+	return &dtos.EnableMFAResponse{
+		Message: "MFA enabled successfully",
+		OTP:     otp,
+	}, nil
 }
 
 // VerifyMFA checks if the provided OTP matches the stored OTP for the user and marks it as used
@@ -68,30 +74,25 @@ func (svc *mfaService) VerifyMFA(userID, otp string) error {
 	// Retrieve the latest unused MFA record for the user
 	mfa, err := svc.MFARepo.GetUnusedMFAByUserId(userID)
 	if err != nil {
-		log.Printf("Failed to fetch MFA record: %v", err)
-		return errors.New("failed to verify MFA")
+		return errors.NewAppError(http.StatusNotFound, constants.ErrFailedToVerifyMFA, err)
 	}
 	if mfa == nil {
-		log.Printf("No unused MFA record found for user: %s", userID)
-		return constants.ErrOTPNotFoundVar
+		return errors.NewAppError(http.StatusNotFound, "No unused MFA record found for user: "+userID, err)
 	}
 
 	// Check if the OTP has expired
 	if time.Now().After(mfa.ExpiresAt) {
-		log.Printf("OTP expired for user: %s", userID)
-		return constants.ErrOTPExpiredVar
+		return errors.NewAppError(http.StatusUnauthorized, constants.ErrOTPExpired, err)
 	}
 
 	// Validate the OTP
 	if otp != mfa.OTP {
-		log.Printf("Invalid OTP for user: %s", userID)
-		return constants.ErrInvalidOTPVar
+		return errors.NewAppError(http.StatusUnauthorized, constants.ErrInvalidOTP, err)
 	}
 
 	// Mark the OTP as used
 	if err := svc.MFARepo.UpdateUsed(mfa.ID, true); err != nil {
-		log.Printf("Failed to update MFA record as used: %v", err)
-		return errors.New("failed to mark MFA as used")
+		return errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToMarkMFA, err)
 	}
 
 	return nil

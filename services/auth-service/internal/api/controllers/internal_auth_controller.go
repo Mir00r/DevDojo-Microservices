@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/Mir00r/auth-service/constants"
-	request "github.com/Mir00r/auth-service/internal/models/request"
+	"github.com/Mir00r/auth-service/errors"
+	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/Mir00r/auth-service/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -33,18 +33,18 @@ func NewInternalAuthController(internalAuthService services.InternalAuthService)
 // @Failure 401 {object} response.ErrorResponse
 // @Router /internal/v1/validate-token [post]
 func (ctrl *InternalAuthController) ValidateToken(c *gin.Context) {
-	var req request.ValidateTokenRequest
+	var req dtos.ValidateTokenRequest
 
 	// Validate the incoming request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	// Call the service layer to validate the token
 	response, err := ctrl.InternalAuthService.ValidateToken(req.Token)
 	if err != nil {
-		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 

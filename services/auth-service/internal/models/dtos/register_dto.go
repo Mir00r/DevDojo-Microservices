@@ -1,4 +1,8 @@
-package services
+package dtos
+
+type RegisterResponse struct {
+	Message string `json:"message"`
+}
 
 type RegisterRequest struct {
 	Name     string `json:"name" validate:"required"`

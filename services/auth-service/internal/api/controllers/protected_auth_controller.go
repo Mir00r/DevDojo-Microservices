@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/errors"
 	"github.com/Mir00r/auth-service/internal/models/dtos"
-	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/services"
 	"github.com/Mir00r/auth-service/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -88,26 +88,24 @@ func (ctrl *ProtectedAuthController) EnableMFA(c *gin.Context) {
 	userID := claims.UserID
 
 	// Call the MFAService to enable MFA and generate an OTP
-	otp, err := ctrl.MFAService.EnableMFA(userID)
+	response, err := ctrl.MFAService.EnableMFA(userID)
 	if err != nil {
-		utils.ErrorResponseCtx(c, http.StatusInternalServerError, err.Error())
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 
 	// Respond with the generated OTP and success message
-	utils.JSONResponseCtx(c, http.StatusOK, gin.H{
-		"message": "MFA enabled",
-		"otp":     otp,
-	})
+	utils.JSONResponseCtx(c, http.StatusOK, response)
 }
 
 // VerifyMFA verifies the provided OTP for the currently authenticated user.
 // This endpoint validates the OTP submitted by the user during the MFA process.
 func (ctrl *ProtectedAuthController) VerifyMFA(c *gin.Context) {
+	var req dtos.VerifyMFARequest
+
 	// Bind the request payload to the VerifyMFARequest struct
-	var req request.VerifyMFARequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
@@ -117,7 +115,7 @@ func (ctrl *ProtectedAuthController) VerifyMFA(c *gin.Context) {
 
 	// Call the MFAService to verify the OTP
 	if err := ctrl.MFAService.VerifyMFA(userID, req.OTP); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -130,19 +128,20 @@ func (ctrl *ProtectedAuthController) RefreshToken(c *gin.Context) {
 
 	// Parse JSON request body
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, constants.ErrInvalidRqPayload)
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	// Validate the request
 	if err := services.ValidateRequest(req); err != nil {
-		utils.ErrorResponseCtx(c, http.StatusBadRequest, err.Error())
+		_ = c.Error(errors.NewAppError(http.StatusBadRequest, constants.ErrInvalidRqPayload, err))
 		return
 	}
 
+	// Refresh the token
 	response, err := ctrl.TokenService.RefreshToken(req)
 	if err != nil {
-		utils.ErrorResponseCtx(c, http.StatusUnauthorized, err.Error())
+		_ = c.Error(err) // Propagate error to middleware
 		return
 	}
 

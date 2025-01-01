@@ -3,9 +3,9 @@ package services
 import (
 	config "github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/errors"
 	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/models/entities"
-	request "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
 	"time"
@@ -14,7 +14,7 @@ import (
 // AuthService defines the methods for authentication
 type AuthService interface {
 	Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error)
-	RegisterUser(req request.RegisterRequest) error
+	RegisterUser(req dtos.RegisterRequest) error
 	GetUserProfile(userID string) (*entities.User, error)
 }
 
@@ -48,25 +48,25 @@ func NewAuthService(userRepo repositories.UserRepository, tokenRepo repositories
 func (svc *authService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error) {
 	// Retrieve the user from the database by email
 	user, err := svc.UserRepo.FindUserByEmail(req.Email)
-	if err != nil {
-		return nil, constants.ErrInvalidCredentials
+	if err != nil || user == nil {
+		return nil, errors.ErrInvalidCredentials
 	}
 
 	// Verify the provided password against the hashed password
 	if !utils.VerifyPassword(user.Password, req.Password) {
-		return nil, constants.ErrInvalidCredentials
+		return nil, errors.ErrInvalidCredentials
 	}
 
 	// Generate a JWT token for the authenticated user
 	accessToken, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, utils.TokenExpiry())
 	if err != nil {
-		return nil, constants.ErrGenerateTokenVar
+		return nil, errors.NewAppError(errors.ErrGenerateToken.Code, errors.ErrGenerateToken.Message, err)
 	}
 
 	// Generate a refresh token for the user
 	refreshToken, err := utils.GenerateRefreshToken()
 	if err != nil {
-		return nil, constants.ErrGenerateTokenVar
+		return nil, errors.NewAppError(errors.ErrGenerateToken.Code, errors.ErrGenerateToken.Message, err)
 	}
 
 	// Save the refresh token in the database
@@ -79,7 +79,7 @@ func (svc *authService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse
 		RefreshTokenExpiresAt: time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry)),
 	})
 	if err != nil {
-		return nil, constants.ErrSaveTokenVar
+		return nil, errors.NewAppError(errors.ErrSaveToken.Code, errors.ErrSaveToken.Message, err)
 	}
 
 	// Return the LoginResponse
@@ -102,11 +102,11 @@ func (svc *authService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse
 //
 // Returns:
 // - An error if registration fails.
-func (svc *authService) RegisterUser(req request.RegisterRequest) error {
+func (svc *authService) RegisterUser(req dtos.RegisterRequest) error {
 	// Hash the user's password
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return constants.ErrHashPasswordVar
+		return errors.ErrHashPassword
 	}
 
 	// Create a new user entity
@@ -118,7 +118,7 @@ func (svc *authService) RegisterUser(req request.RegisterRequest) error {
 
 	// Save the new user in the database
 	if err := svc.UserRepo.CreateUser(newUser); err != nil {
-		return err
+		return errors.ErrFailedToRegisterUser
 	}
 
 	return nil
@@ -145,7 +145,7 @@ func (svc *authService) GetUserProfile(userID string) (*entities.User, error) {
 
 	// Check if the user exists
 	if user == nil {
-		return nil, constants.ErrUserNotFoundVar
+		return nil, errors.ErrUserNotFound
 	}
 
 	return user, nil

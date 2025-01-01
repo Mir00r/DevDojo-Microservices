@@ -1,4 +1,4 @@
-package services
+package dtos
 
 type ConfirmPasswordResetRequest struct {
 	Token       string `json:"token" validate:"required,token"`

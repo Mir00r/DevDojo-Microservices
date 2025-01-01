@@ -1,24 +1,23 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/constants"
+	"github.com/Mir00r/auth-service/errors"
 	"github.com/Mir00r/auth-service/internal/models/dtos"
 	"github.com/Mir00r/auth-service/internal/models/entities"
+	"net/http"
 	"time"
 
-	services "github.com/Mir00r/auth-service/internal/models/request"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
-	"log"
 )
 
 // TokenServiceInterface defines the methods for the TokenService
 type TokenServiceInterface interface {
-	InitiatePasswordReset(req services.PasswordResetRequest) error
-	ResetPassword(req services.ConfirmPasswordResetRequest) error
+	InitiatePasswordReset(req dtos.PasswordResetRequest) error
+	ResetPassword(req dtos.ConfirmPasswordResetRequest) error
 	Logout(tokenString string, userID string) error
 	RefreshToken(req dtos.RefreshTokenRequest) (*dtos.RefreshTokenResponse, error)
 }
@@ -34,71 +33,67 @@ func NewTokenService(repo repositories.TokenRepository, userRepo repositories.Us
 	return &TokenService{TokenRepo: repo, UserRepo: userRepo}
 }
 
-func (svc *TokenService) InitiatePasswordReset(req services.PasswordResetRequest) error {
+func (svc *TokenService) InitiatePasswordReset(req dtos.PasswordResetRequest) error {
 	// Check if the user exists
 	user, err := svc.UserRepo.FindUserByEmail(req.Email)
-	//log.Printf("After query the user from DB user: %v\n and error: %v\n", user, err)
 	if err != nil {
-		return err
+		return errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToRetrieveUser, err)
 	}
 	if user == nil {
-		return constants.ErrUserNotFoundVar
+		return errors.ErrUserNotFound // Defined as a domain-specific error
 	}
 
 	// Generate a reset token
 	resetToken, err := utils.GeneratePasswordResetToken(user.ID)
-	log.Printf("After Generate a reset token: %v\n and the error is: %v\n", resetToken, err)
 	if err != nil {
-		return err
+		return errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToGenerateResetToken, err)
 	}
 
-	// Save the token in the database (if you have a table for reset tokens)
+	// Save the token in the database
 	err = svc.TokenRepo.SaveResetToken(resetToken, user.ID)
-	log.Printf("After save the token: %v\n", err)
 	if err != nil {
-		return err
+		return errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToSaveResetToken, err)
 	}
 
 	// Send the reset email
 	resetLink := fmt.Sprintf("%s/reset-password?token=%s", config.AppConfig.Password.PasswordResetURL, resetToken)
 	err = NewEmailService().SendPasswordResetEmail(user.Email, resetLink)
 	if err != nil {
-		return err
+		return errors.NewAppError(http.StatusInternalServerError, "Failed to send password reset email", err)
 	}
 
 	return nil
 }
 
-func (svc *TokenService) ResetPassword(req services.ConfirmPasswordResetRequest) error {
+func (svc *TokenService) ResetPassword(req dtos.ConfirmPasswordResetRequest) error {
 	// Verify the reset token
 	userID, err := utils.VerifyPasswordResetToken(req.Token)
-	log.Printf("Verify Password Reset token: %v\n", err)
 	if err != nil {
-		return errors.New("invalid or expired reset token")
+		return errors.ErrInvalidOrExpiredResetToken
 	}
 
 	// Check if the token has already been used
 	resetToken, err := svc.TokenRepo.FindToken(req.Token)
 	if err != nil || resetToken.Used {
-		return errors.New("reset token already used or invalid")
+		return errors.ErrResetTokenAlreadyUsed
 	}
 
 	// Hash the new password
 	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
-		return errors.New("failed to hash password")
+		return errors.ErrHashPassword
 	}
 
 	// Update the user's password
 	err = svc.UserRepo.UpdatePassword(userID, hashedPassword)
 	if err != nil {
-		return err
+		return errors.ErrFailedToUpdatePassword
 	}
 
 	// Mark the reset token as used
 	err = svc.TokenRepo.MarkTokenAsUsed(req.Token)
 	if err != nil {
-		return err
+		return errors.ErrFailedToUpdatePassword
 	}
 
 	return nil
@@ -130,31 +125,31 @@ func (svc *TokenService) RefreshToken(req dtos.RefreshTokenRequest) (*dtos.Refre
 	// Validate the refresh token
 	token, err := svc.TokenRepo.FindRefreshToken(req.RefreshToken)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToFindToken, err)
 	}
-	if token == nil || time.Now().After(token.ExpiresAt) {
-		return nil, constants.ErrInvalidOrExpiredRefreshTokenVar
+	if token == nil || time.Now().After(token.RefreshTokenExpiresAt) {
+		return nil, errors.ErrInvalidOrExpiredRefreshToken // Domain-specific error
 	}
 
 	// Find the user associated with the refresh token
 	user, err := svc.UserRepo.FindUserByID(token.UserID)
 	if err != nil {
-		return nil, err
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToRetrieveUser, err)
 	}
 	if user == nil {
-		return nil, constants.ErrUserNotFoundVar
+		return nil, errors.ErrUserNotFound // Domain-specific error
 	}
 
 	// Generate a new access token
 	accessToken, err := utils.GenerateJWT(user.ID, user.Email, config.AppConfig.JWT.Secret, utils.TokenExpiry())
 	if err != nil {
-		return nil, err
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToGenerateAccessToken, err)
 	}
 
 	// Optionally: Rotate the refresh token (generate a new one)
 	newRefreshToken, err := utils.GenerateRefreshToken()
 	if err != nil {
-		return nil, constants.ErrGenerateTokenVar
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToGenerateNewAccessToken, err)
 	}
 
 	// Update the existing token entry in the database
@@ -165,26 +160,14 @@ func (svc *TokenService) RefreshToken(req dtos.RefreshTokenRequest) (*dtos.Refre
 	token.UpdatedAt = time.Now()
 	token.RefreshTokenExpiresAt = time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry))
 	if err := svc.TokenRepo.UpdateToken(token); err != nil {
-		return nil, err
+		return nil, errors.NewAppError(http.StatusInternalServerError, constants.ErrFailedToUpdateToken, err)
 	}
 
-	// Save the new refresh token in the database
-	//err = svc.TokenRepo.CreateToken(&entities.Token{
-	//	UserID:                user.ID,
-	//	Token:                 accessToken,
-	//	RefreshToken:          newRefreshToken,
-	//	Type:                  constants.RefreshToken,
-	//	ExpiresAt:             time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry)),
-	//	RefreshTokenExpiresAt: time.Now().Add(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry)),
-	//})
-	//if err != nil {
-	//	return nil, constants.ErrSaveTokenVar
-	//}
-
+	// Return the new tokens in the response
 	return &dtos.RefreshTokenResponse{
 		AccessToken:           accessToken,
 		RefreshToken:          newRefreshToken,
-		ExpiresIn:             utils.TokenExpiry().Microseconds(),                                                 // 2 hour
-		RefreshTokenExpiresIn: int64(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry).Seconds()), // 24 hour
+		ExpiresIn:             int64(utils.TokenExpiry().Seconds()),                                               // 2 hours
+		RefreshTokenExpiresIn: int64(utils.ConvertTokenExpiry(config.AppConfig.JWT.RefreshTokenExpiry).Seconds()), // 24 hours
 	}, nil
 }
