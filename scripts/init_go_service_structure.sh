@@ -20,6 +20,7 @@ SERVICE_NAME=$1
 LOCATION=$2
 GITHUB_USERNAME=$3
 SERVICE_PATH="${LOCATION}/${SERVICE_NAME}-service"
+SERVICE_NAME_CAPITALIZED="$(echo "${SERVICE_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${SERVICE_NAME:1}"
 MODULE_NAME="github.com/${GITHUB_USERNAME}/${SERVICE_NAME}-service"
 
 # Function to normalize the path based on the OS
@@ -58,7 +59,7 @@ create_structure() {
     echo "Creating folder structure for service: $SERVICE_NAME at $LOCATION"
 
     # Main directories
-    mkdir -p ${SERVICE_PATH}/{cmd,config/env,constants,containers,errors,middlewares,routes,internal/{api/{controllers},services,models/{dtos,entities},repositories},utils,test,scripts,db/{migrations,seeds},build/{helm},docs,logs}
+    mkdir -p ${SERVICE_PATH}/{cmd,config/env,constants,containers,errors,middlewares,routes,internal/{api/controllers,services,models/{dtos,entities},repositories},utils,test,scripts,db/{migrations,seeds},build/{helm},docs,logs}
 
     # Add placeholders
     echo "// Main entry point for the service" > ${SERVICE_PATH}/cmd/main.go
@@ -72,6 +73,9 @@ create_structure() {
     echo "// Placeholder for DTO models" > ${SERVICE_PATH}/internal/models/dtos/sample_dto.go
     echo "// Placeholder for database entities" > ${SERVICE_PATH}/internal/models/entities/sample_entities.go
     echo "// Placeholder for repositories" > ${SERVICE_PATH}/internal/repositories/sample_repository.go
+    echo "// Placeholder internal controller" > ${SERVICE_PATH}/internal/api/controllers/internal_"${SERVICE_NAME}"_controller.go
+    echo "// Placeholder protected controller" > ${SERVICE_PATH}/internal/api/controllers/protected_"${SERVICE_NAME}"_controller.go
+    echo "// Placeholder public controller" > ${SERVICE_PATH}/internal/api/controllers/public_"${SERVICE_NAME}"_controller.go
 #    echo "// Utility functions for the application" > ${SERVICE_PATH}/internal/utils/bcrypt.go
 #    echo "// JWT utility functions" > ${SERVICE_PATH}/internal/utils/jwt.go
     echo "// Database migration for users table" > ${SERVICE_PATH}/db/migrations/001_sample_table.up.sql
@@ -567,40 +571,42 @@ EOF
 package routes
 
 import (
+	"github.com/${GITHUB_USERNAME}/${SERVICE_NAME}-service/internal/api/controllers"
+	"github.com/${GITHUB_USERNAME}/${SERVICE_NAME}-service/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
 // SetupRoutes initializes all API routes grouped by category and applies appropriate middlewares.
 func SetupRoutes(
 	router *gin.Engine,
-	publicAuthController *controllers.PublicAuthController,
-	protectedAuthController *controllers.ProtectedAuthController,
-	internalAuthController *controllers.InternalAuthController,
+	public${SERVICE_NAME_CAPITALIZED}Controller *controllers.Public${SERVICE_NAME_CAPITALIZED}Controller,
+	protected${SERVICE_NAME_CAPITALIZED}Controller *controllers.Protected${SERVICE_NAME_CAPITALIZED}Controller,
+	internal${SERVICE_NAME_CAPITALIZED}Controller *controllers.Internal${SERVICE_NAME_CAPITALIZED}Controller,
 ) {
 	// Attach exception middleware
 	router.Use(middlewares.ErrorHandler())
 
 	// Initialize Public API routes
-	initializePublicRoutes(router, publicAuthController)
+	initializePublicRoutes(router, public${SERVICE_NAME_CAPITALIZED}Controller)
 
 	// Initialize Protected API routes
-	initializeProtectedRoutes(router, protectedAuthController)
+	initializeProtectedRoutes(router, protected${SERVICE_NAME_CAPITALIZED}Controller)
 
 	// Initialize Internal API routes
-	initializeInternalRoutes(router, internalAuthController)
+	initializeInternalRoutes(router, internal${SERVICE_NAME_CAPITALIZED}Controller)
 }
 
 // initializePublicRoutes sets up routes for Public APIs
-func initializePublicRoutes(router *gin.Engine, controller *controllers.PublicAuthController) {
-	publicGroup := router.Group("/v1/public/auth")
+func initializePublicRoutes(router *gin.Engine, controller *controllers.Public${SERVICE_NAME_CAPITALIZED}Controller) {
+	publicGroup := router.Group("/v1/public/${SERVICE_NAME}")
 	{
 
 	}
 }
 
 // initializeProtectedRoutes sets up routes for Protected APIs
-func initializeProtectedRoutes(router *gin.Engine, controller *controllers.ProtectedAuthController) {
-	protectedGroup := router.Group("/v1/protected/auth")
+func initializeProtectedRoutes(router *gin.Engine, controller *controllers.Protected${SERVICE_NAME_CAPITALIZED}Controller) {
+	protectedGroup := router.Group("/v1/protected/${SERVICE_NAME}")
 	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
 	{
 
@@ -608,8 +614,8 @@ func initializeProtectedRoutes(router *gin.Engine, controller *controllers.Prote
 }
 
 // initializeInternalRoutes sets up routes for Internal APIs
-func initializeInternalRoutes(router *gin.Engine, controller *controllers.InternalAuthController) {
-	internalGroup := router.Group("/v1/internal/auth")
+func initializeInternalRoutes(router *gin.Engine, controller *controllers.Internal${SERVICE_NAME_CAPITALIZED}Controller) {
+	internalGroup := router.Group("/v1/internal/${SERVICE_NAME}")
 	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
 	{
 
