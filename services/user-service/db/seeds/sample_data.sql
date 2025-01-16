@@ -1,1 +1,1 @@
-// Seed data for the database
+/* Seed data for the database */

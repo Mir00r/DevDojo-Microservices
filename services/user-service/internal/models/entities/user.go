@@ -30,5 +30,5 @@ type User struct {
 
 // TableName overrides the default table name
 func (User) TableName() string {
-	return "user.users"
+	return "my_user.users"
 }

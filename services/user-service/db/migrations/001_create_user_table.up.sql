@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS user.users
+CREATE TABLE IF NOT EXISTS my_user.users
 (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name            VARCHAR(100)        NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS user.users
     is_active       BOOLEAN          DEFAULT TRUE,
     is_verified     BOOLEAN          DEFAULT FALSE,
     profile_picture VARCHAR(255),
-    role            VARCHAR(50)      DEFAULT 'user',
+    role            VARCHAR(50)      DEFAULT 'User',
     created_at      TIMESTAMP        DEFAULT now(),
     updated_at      TIMESTAMP        DEFAULT now(),
     deleted_at      TIMESTAMP,

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Mir00r/user-service/config"
+	"github.com/Mir00r/user-service/configs"
 	"github.com/Mir00r/user-service/containers"
 	database "github.com/Mir00r/user-service/db"
 	"github.com/Mir00r/user-service/routes"
@@ -13,7 +13,7 @@ import (
 func main() {
 	// Step 1: Load Configuration
 	configPath := getConfigPath()
-	if err := config.LoadConfig(configPath); err != nil {
+	if err := configs.LoadConfig(configPath); err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
@@ -25,7 +25,7 @@ func main() {
 	// Step 3: Run Database Migrations
 	migrationPath, _ := database.MigrationPath()
 	log.Printf("Resolved migration path: %s", migrationPath)
-	if err := database.RunMigrations(migrationPath, config.AppConfig.Database.DSN); err != nil {
+	if err := database.RunMigrations(migrationPath, configs.AppConfig.Database.DSN); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
@@ -34,7 +34,7 @@ func main() {
 
 	// Step 5: Setup Router
 	router := gin.Default()
-	routes.SetupRoutes(router)
+	routes.SetupRoutes(router, appContainer.PublicUserController, appContainer.ProtectedUserController, appContainer.InternalUserController)
 
 	// Step 6: Start Server
 	startServer(router)
@@ -53,7 +53,7 @@ func getConfigPath() string {
 func startServer(router *gin.Engine) {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8081" // Default port
+		port = "8082" // Default port
 	}
 
 	log.Printf("Starting server on port %s\n", port)

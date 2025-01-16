@@ -26,15 +26,13 @@ func NewInternalUserController(userService services.UserService) *InternalUserCo
 func (c *InternalUserController) CreateUser(ctx *gin.Context) {
 	var req dtos.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		//ctx.JSON(http.StatusBadRequest, gin.H{"error": utils.ValidationErrorToString(err)})
 		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	user, err := c.UserService.CreateUser(ctx, req)
 	if err != nil {
-		//ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		_ = ctx.Error(errors.ErrFailedToRegisterUser) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -48,13 +46,7 @@ func (c *InternalUserController) GetUserDetails(ctx *gin.Context) {
 
 	user, err := c.UserService.GetUserByID(ctx, userId)
 	if err != nil {
-		if err.Error() == "user not found" {
-			//ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			_ = ctx.Error(errors.ErrUserNotFound) // Propagate error to middleware
-		} else {
-			//ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			_ = ctx.Error(errors.ErrFailedToFetchUser) // Propagate error to middleware
-		}
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 

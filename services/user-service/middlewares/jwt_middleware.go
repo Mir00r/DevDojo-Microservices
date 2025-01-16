@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"github.com/Mir00r/user-service/config"
+	"github.com/Mir00r/user-service/configs"
 	"github.com/Mir00r/user-service/constants"
 	utils2 "github.com/Mir00r/user-service/utils"
 	"github.com/gin-gonic/gin"
@@ -53,8 +53,8 @@ func AuthMiddleware() gin.HandlerFunc {
 // BasicAuthMiddleware validates requests using Basic Auth or API keys
 func BasicAuthMiddleware(c *gin.Context) {
 	// Fetch expected credentials from environment variables
-	expectedUsername := config.AppConfig.InternalSecurity.UserName
-	expectedPassword := config.AppConfig.InternalSecurity.Password
+	expectedUsername := configs.AppConfig.InternalSecurity.UserName
+	expectedPassword := configs.AppConfig.InternalSecurity.Password
 	//expectedAPIKey := os.Getenv("API_KEY") // API key support
 
 	// Check Basic Auth credentials

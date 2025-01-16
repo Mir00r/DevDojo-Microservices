@@ -26,8 +26,7 @@ func NewProtectedUserController(userService services.UserService) *ProtectedUser
 func (c *ProtectedUserController) GetAllUsers(ctx *gin.Context) {
 	users, err := c.UserService.GetAllUsers(ctx, 0, 10)
 	if err != nil {
-		//ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		_ = ctx.Error(errors.ErrFailedToFetchUser) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -40,13 +39,7 @@ func (c *ProtectedUserController) GetUserByID(ctx *gin.Context) {
 
 	user, err := c.UserService.GetUserByID(ctx, userId)
 	if err != nil {
-		if err.Error() == "user not found" {
-			//ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			_ = ctx.Error(errors.ErrUserNotFound) // Propagate error to middleware
-		} else {
-			//ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			_ = ctx.Error(errors.ErrFailedToFetchUser) // Propagate error to middleware
-		}
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
@@ -59,24 +52,16 @@ func (c *ProtectedUserController) UpdateUser(ctx *gin.Context) {
 
 	var req dtos.UpdateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		//ctx.JSON(http.StatusBadRequest, gin.H{"error": utils.ValidationErrorToString(err)})
 		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
 		return
 	}
 
 	user, err := c.UserService.UpdateUser(ctx, userId, req)
 	if err != nil {
-		if err.Error() == "user not found" {
-			//ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			_ = ctx.Error(errors.ErrUserNotFound) // Propagate error to middleware
-		} else {
-			//ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			_ = ctx.Error(errors.ErrFailedToUpdateUser) // Propagate error to middleware
-		}
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
-	//ctx.JSON(http.StatusOK, user)
 	utils.JSONResponseCtx(ctx, http.StatusCreated, user)
 }
 
@@ -86,17 +71,11 @@ func (c *ProtectedUserController) DeleteUser(ctx *gin.Context) {
 
 	err := c.UserService.DeleteUser(ctx, userId)
 	if err != nil {
-		if err.Error() == "user not found" {
-			//ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			_ = ctx.Error(errors.ErrUserNotFound) // Propagate error to middleware
-		} else {
-			//ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			_ = ctx.Error(errors.ErrFailedToDeleteUser) // Propagate error to middleware
-		}
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+	utils.JSONResponseCtx(ctx, http.StatusOK, "User deleted successfully")
 }
 
 // // GetUserRoles retrieves roles assigned to a user (Admin only)
@@ -129,17 +108,10 @@ func (c *ProtectedUserController) AssignRoles(ctx *gin.Context) {
 
 	err := c.UserService.AssignRole(ctx, userId, req.Role)
 	if err != nil {
-		if err.Error() == "user not found" {
-			//ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			_ = ctx.Error(errors.ErrUserNotFound) // Propagate error to middleware
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			_ = ctx.Error(errors.ErrFailedToAssignUserRole) // Propagate error to middleware
-		}
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
-	//ctx.JSON(http.StatusOK, gin.H{"message": "Roles assigned successfully"})
 	utils.JSONResponseCtx(ctx, http.StatusCreated, "Roles assigned successfully")
 }
 
@@ -150,16 +122,9 @@ func (c *ProtectedUserController) RemoveRole(ctx *gin.Context) {
 
 	err := c.UserService.RemoveRole(ctx, userId)
 	if err != nil {
-		if err.Error() == "user not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		} else if err.Error() == "role not found" {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+		_ = ctx.Error(err) // Propagate error to middleware
 		return
 	}
 
-	//ctx.JSON(http.StatusOK, gin.H{"message": "Role removed successfully"})
 	utils.JSONResponseCtx(ctx, http.StatusCreated, "Roles removed successfully")
 }

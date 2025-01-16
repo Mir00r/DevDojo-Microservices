@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"github.com/Mir00r/user-service/config"
+	"github.com/Mir00r/user-service/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -27,11 +27,11 @@ func Connect() error {
 		// Construct the DSN (Data Source Name) using configuration
 		dsn := fmt.Sprintf(
 			"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-			config.AppConfig.Database.Host,
-			config.AppConfig.Database.Port,
-			config.AppConfig.Database.User,
-			config.AppConfig.Database.Password,
-			config.AppConfig.Database.DBName,
+			configs.AppConfig.Database.Host,
+			configs.AppConfig.Database.Port,
+			configs.AppConfig.Database.User,
+			configs.AppConfig.Database.Password,
+			configs.AppConfig.Database.DBName,
 		)
 
 		// Open the database connection

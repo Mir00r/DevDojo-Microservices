@@ -2,11 +2,15 @@ package utils
 
 import (
 	"errors"
-	"github.com/Mir00r/user-service/config"
+	"github.com/Mir00r/user-service/configs"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
 	"net/http/httptest"
+	"regexp"
+	"strings"
 	"time"
+	"unicode"
 )
 
 // ExtractUserIDFromContext retrieves the user ID from the Gin context.
@@ -28,7 +32,7 @@ func ExtractUserIDFromContext(c *gin.Context) (string, error) {
 
 func TokenExpiry() time.Duration {
 	// Parse the "24h" string into a time.Duration
-	duration, err := time.ParseDuration(config.AppConfig.JWT.Expiry)
+	duration, err := time.ParseDuration(configs.AppConfig.JWT.Expiry)
 	if err != nil {
 		log.Fatalf("Failed to parse JWT expiry duration: %v", err)
 	}
@@ -73,4 +77,57 @@ func ConvertStringToTime(dateStr, layout string) (time.Time, error) {
 	}
 
 	return parsedTime, nil
+}
+
+// IsValidEmail checks if the provided email is valid
+func IsValidEmail(email string) bool {
+	// Simple email regex validation
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
+}
+
+// IsStrongPassword checks if the provided password meets strength criteria
+func IsStrongPassword(password string) bool {
+	var hasMinLen, hasUpper, hasLower, hasDigit, hasSpecial bool
+
+	// Check minimum length
+	if len(password) >= 8 {
+		hasMinLen = true
+	}
+
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsDigit(char):
+			hasDigit = true
+		case strings.ContainsRune("!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~", char):
+			hasSpecial = true
+		}
+	}
+
+	// Password is strong if it satisfies all conditions
+	return hasMinLen && hasUpper && hasLower && hasDigit && hasSpecial
+}
+
+// IsValidUUID checks if the provided string is a valid UUID
+func IsValidUUID(id string) bool {
+	_, err := uuid.Parse(id)
+	return err == nil
+}
+
+// IsValidPhone checks if the provided phone number is valid
+func IsValidPhone(phone string) bool {
+	// Regex for validating phone numbers (basic example)
+	re := regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
+	return re.MatchString(phone)
+}
+
+// IsValidPhoneWithRgx checks if the provided phone number is valid with provided regex
+func IsValidPhoneWithRgx(phone string, rgx string) bool {
+	// Regex for validating phone numbers (basic example)
+	re := regexp.MustCompile(rgx)
+	return re.MatchString(phone)
 }

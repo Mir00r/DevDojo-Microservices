@@ -46,7 +46,7 @@ func main() {
 
 // getConfigPath determines the configuration file path
 func getConfigPath() string {
-	configPath := "./configs/config.yaml"
+	configPath := "./configs/configs.yaml"
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		configPath = envPath
 	}

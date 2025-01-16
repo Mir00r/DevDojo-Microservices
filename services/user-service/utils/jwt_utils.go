@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"github.com/Mir00r/user-service/config"
+	"github.com/Mir00r/user-service/configs"
 	"github.com/golang-jwt/jwt/v4"
 	"log"
 	"os"
@@ -42,12 +42,12 @@ func GenerateJWT(userID, email, secret string, expiry time.Duration) (string, er
 
 // VerifyJWT verifies a JWT and returns the claims if valid
 func VerifyJWT(tokenString string) (*JWTClaims, error) {
-	//config.LoadConfig()
+	//configs.LoadConfig()
 
 	// Debug log to verify JWTSecret
 	log.Printf("Received Token: %s", tokenString)
-	log.Printf("JWTSecret in VerifyJWT: %s", config.AppConfig.JWT.Secret)
-	secret := []byte(config.AppConfig.JWT.Secret)
+	log.Printf("JWTSecret in VerifyJWT: %s", configs.AppConfig.JWT.Secret)
+	secret := []byte(configs.AppConfig.JWT.Secret)
 	log.Printf("Using JWT Secret After Conevrtion Byte Data Type: %s", secret)
 
 	claims := &JWTClaims{}

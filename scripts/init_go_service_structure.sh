@@ -59,11 +59,11 @@ create_structure() {
     echo "Creating folder structure for service: $SERVICE_NAME at $LOCATION"
 
     # Main directories
-    mkdir -p ${SERVICE_PATH}/{cmd,config/env,constants,containers,errors,middlewares,routes,internal/{api/controllers,services,models/{dtos,entities},repositories},utils,test,scripts,db/{migrations,seeds},build/{helm},docs,logs}
+    mkdir -p ${SERVICE_PATH}/{cmd,configs/env,constants,containers,errors,middlewares,routes,internal/{api/controllers,services,models/{dtos,entities},repositories},utils,test,scripts,db/{migrations,seeds},build/{helm},docs,logs}
 
     # Add placeholders
     echo "// Main entry point for the service" > ${SERVICE_PATH}/cmd/main.go
-    echo "// Application configuration file" > ${SERVICE_PATH}/config/app_config.go
+    echo "// Application configuration file" > ${SERVICE_PATH}/configs/app_config.go
     echo "// Constants used across the application" > ${SERVICE_PATH}/constants/app_constant.go
     echo "// Dependency injection container" > ${SERVICE_PATH}/containers/container.go
     echo "// Centralized error definitions" > ${SERVICE_PATH}/errors/errors.go
@@ -206,8 +206,8 @@ EOF
 
 
     # Create a basic configuration loader
-    cat <<EOF > config/app_config.go
-package config
+    cat <<EOF > configs/app_config.go
+package configs
 
 import (
     "gopkg.in/yaml.v3"
