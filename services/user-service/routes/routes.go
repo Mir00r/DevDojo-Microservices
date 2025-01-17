@@ -31,7 +31,7 @@ func initializePublicRoutes(router *gin.Engine, controller *controllers.PublicUs
 	publicGroup := router.Group("/v1/public/user")
 	{
 		publicGroup.POST("/register", controller.CreateUser)
-		publicGroup.GET("/:userId/details", controller.GetUser)
+		publicGroup.GET("/details/:userId", controller.GetUser)
 	}
 }
 

@@ -61,7 +61,7 @@ func (s *userService) CreateUser(ctx context.Context, req dtos.CreateUserRequest
 		return nil, errors.ErrPasswordHashing
 	}
 
-	defaultRole := "user"
+	defaultRole := "User"
 	user := &entities.User{
 		Name:        req.Name,
 		Email:       req.Email,

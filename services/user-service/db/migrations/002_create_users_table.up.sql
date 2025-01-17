@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS my_user.users
+CREATE TABLE IF NOT EXISTS auth.users
 (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name            VARCHAR(100)        NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS my_user.users
     last_login      TIMESTAMP,
     date_of_birth   TIMESTAMP,
     address         TEXT,
-    tenant_id       UUID,
+    tenant_id       UUID DEFAULT gen_random_uuid(),
     locale          VARCHAR(10)      DEFAULT 'en-US',
     timezone        VARCHAR(50)      DEFAULT 'UTC',
     mfa_enabled     BOOLEAN          DEFAULT FALSE,

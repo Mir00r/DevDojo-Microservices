@@ -52,7 +52,7 @@ type UserResponse struct {
 	Address        *string    `json:"address,omitempty"`
 	Locale         string     `json:"locale"`
 	Timezone       string     `json:"timezone"`
-	TenantID       *string    `json:"tenantId,omitempty"`
+	TenantID       string     `json:"tenantId,omitempty"`
 	MFAEnabled     bool       `json:"isMfaEnabled"`
 }
 
@@ -76,6 +76,7 @@ func ToUserResponse(user *entities.User) *UserResponse {
 		LastLogin:      user.LastLogin,
 		DateOfBirth:    user.DateOfBirth,
 		Address:        user.Address,
+		TenantID:       user.TenantID,
 		Locale:         user.Locale,
 		Timezone:       user.Timezone,
 		MFAEnabled:     user.MFAEnabled,
