@@ -45,6 +45,7 @@ type PasswordConfig struct {
 }
 
 type InternalSecurityConfig struct {
+	BaseUrl  string `yaml:"base-url:"`
 	UserName string `yaml:"username"`
 	Password string `yaml:"password"`
 }

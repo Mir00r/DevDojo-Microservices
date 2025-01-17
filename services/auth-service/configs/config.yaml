@@ -18,6 +18,7 @@ password:
   PasswordResetURL: "http://localhost:8081"
 
 internal-security:
+    base-url: "http://localhost:8081"
     username: 'internal'
     password: 'internal'
 

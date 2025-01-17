@@ -56,6 +56,7 @@ func initializeInternalRoutes(router *gin.Engine, controller *controllers.Intern
 	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
 	{
 		internalGroup.POST("", controller.CreateUser)                    // Create a new user
+		internalGroup.POST("/validate", controller.ValidateUser)         // Validate a user
 		internalGroup.GET("/:userId/details", controller.GetUserDetails) // Fetch user details (with all internal fields)
 		//internalGroup.PUT("/:userId/activate", controllers.ActivateUser)     // Activate user account
 		//internalGroup.PUT("/:userId/deactivate", controllers.DeactivateUser) // Deactivate user account

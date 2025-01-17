@@ -11,6 +11,7 @@ import (
 
 type UserService interface {
 	CreateUser(ctx context.Context, req dtos.CreateUserRequest) (*dtos.UserResponse, error)
+	ValidateUser(ctx context.Context, email, password string) (*dtos.UserResponse, error)
 	GetUserByID(ctx context.Context, userID string) (*dtos.UserResponse, error)
 	GetAllUsers(ctx context.Context, limit, offset int) (*dtos.PaginatedUserResponse, error)
 	UpdateUser(ctx context.Context, userID string, req dtos.UpdateUserRequest) (*dtos.UserResponse, error)
@@ -79,6 +80,22 @@ func (s *userService) CreateUser(ctx context.Context, req dtos.CreateUserRequest
 	}
 
 	return dtos.ToUserResponse(createdUser), nil
+}
+
+func (s *userService) ValidateUser(ctx context.Context, email, password string) (*dtos.UserResponse, error) {
+	// Fetch user by email
+	user, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, errors.ErrUserNotFound
+	}
+
+	// Check if password matches
+	if !utils2.VerifyPassword(password, user.Password) {
+		return nil, errors.ErrInvalidCredentials
+	}
+
+	// Return user details
+	return dtos.ToUserResponse(user), nil
 }
 
 // GetUserByID retrieves a user by ID

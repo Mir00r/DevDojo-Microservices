@@ -36,8 +36,24 @@ func (c *InternalUserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	//ctx.JSON(http.StatusCreated, user)
 	utils.JSONResponseCtx(ctx, http.StatusCreated, user)
+}
+
+func (c *InternalUserController) ValidateUser(ctx *gin.Context) {
+	var req dtos.ValidateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		return
+	}
+
+	// Call service to validate the user
+	user, err := c.UserService.ValidateUser(ctx, req.Email, req.Password)
+	if err != nil {
+		_ = ctx.Error(err) // Propagate error to middleware
+		return
+	}
+
+	utils.JSONResponseCtx(ctx, http.StatusOK, user)
 }
 
 // GetUserDetails retrieves user details, including internal fields

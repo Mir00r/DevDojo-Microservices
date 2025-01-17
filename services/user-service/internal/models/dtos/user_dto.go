@@ -35,6 +35,11 @@ type AssignRoleRequest struct {
 	Role string `json:"role" validate:"required,oneof=user admin moderator"`
 }
 
+type ValidateRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
 // UserResponse is used for retrieving user details
 type UserResponse struct {
 	ID             string     `json:"id"`
