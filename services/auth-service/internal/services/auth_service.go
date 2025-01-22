@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/Mir00r/auth-service/apiclients"
 	config "github.com/Mir00r/auth-service/configs"
 	"github.com/Mir00r/auth-service/constants"
 	"github.com/Mir00r/auth-service/errors"
@@ -8,6 +9,7 @@ import (
 	"github.com/Mir00r/auth-service/internal/models/entities"
 	"github.com/Mir00r/auth-service/internal/repositories"
 	"github.com/Mir00r/auth-service/internal/utils"
+	"net/http"
 	"time"
 )
 
@@ -20,15 +22,21 @@ type AuthService interface {
 
 // authService is the concrete implementation of AuthService
 type authService struct {
-	UserRepo  repositories.UserRepository  // Repository for user data
-	TokenRepo repositories.TokenRepository // Repository for token data
+	UserRepo          repositories.UserRepository  // Repository for user data
+	TokenRepo         repositories.TokenRepository // Repository for token data
+	InternalWebClient apiclients.WebClient
 }
 
 // NewAuthService initializes a new instance of AuthService
-func NewAuthService(userRepo repositories.UserRepository, tokenRepo repositories.TokenRepository) AuthService {
+func NewAuthService(
+	userRepo repositories.UserRepository,
+	tokenRepo repositories.TokenRepository,
+	internalWebClient apiclients.WebClient,
+) AuthService {
 	return &authService{
-		UserRepo:  userRepo,
-		TokenRepo: tokenRepo,
+		UserRepo:          userRepo,
+		TokenRepo:         tokenRepo,
+		InternalWebClient: internalWebClient,
 	}
 }
 
@@ -46,6 +54,14 @@ func NewAuthService(userRepo repositories.UserRepository, tokenRepo repositories
 // - A map containing the access token.
 // - An error if authentication fails.
 func (svc *authService) Authenticate(req dtos.LoginRequest) (*dtos.LoginResponse, error) {
+
+	err := svc.InternalWebClient.Send(http.MethodPost,
+		"http://localhost:8082/v1/internal/user/validate",
+		dtos.LoginRequest{Email: req.Email, Password: req.Password},
+		map[string]string{})
+	if err != nil {
+		return nil, err
+	}
 	// Retrieve the user from the database by email
 	user, err := svc.UserRepo.FindUserByEmail(req.Email)
 	if err != nil || user == nil {

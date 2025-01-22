@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"github.com/Mir00r/auth-service/apiclients"
 	database "github.com/Mir00r/auth-service/db"
 	"github.com/Mir00r/auth-service/internal/api/controllers"
 	"github.com/Mir00r/auth-service/internal/repositories"
@@ -22,13 +23,16 @@ type Container struct {
 
 // NewContainer initializes all dependencies and returns a Container instance
 func NewContainer() *Container {
+	// Initialize WebClient
+	webClient := apiclients.NewWebClient() // Base URL and timeout
+
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(database.DB)
 	tokenRepo := repositories.NewTokenRepository(database.DB)
 	mfaRepo := repositories.NewMFARepository(database.DB)
 
 	// Initialize services
-	authService := services.NewAuthService(userRepo, tokenRepo)
+	authService := services.NewAuthService(userRepo, tokenRepo, webClient)
 	internalAuthService := services.NewInternalAuthService(userRepo)
 	tokenService := services.NewTokenService(tokenRepo, userRepo)
 	mfaService := services.NewMFAService(mfaRepo, userRepo)

@@ -1,0 +1,17 @@
+# Start with the Go image
+FROM golang:1.23.3
+
+# Set working directory
+WORKDIR /app
+
+# Copy files
+COPY . .
+
+# Build the Go application
+RUN go build -o user-service ./cmd/main.go
+
+# Expose the service port
+EXPOSE 8082
+
+# Command to run the executable
+CMD ["./user-service"]

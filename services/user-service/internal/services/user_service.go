@@ -90,7 +90,7 @@ func (s *userService) ValidateUser(ctx context.Context, email, password string) 
 	}
 
 	// Check if password matches
-	if !utils2.VerifyPassword(password, user.Password) {
+	if !utils2.VerifyPassword(user.Password, password) {
 		return nil, errors.ErrInvalidCredentials
 	}
 

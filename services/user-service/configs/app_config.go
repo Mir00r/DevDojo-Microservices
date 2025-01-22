@@ -9,46 +9,46 @@ import (
 var AppConfig Config
 
 type Config struct {
-	Server           ServerConfig
-	JWT              JWTConfig
-	Database         DatabaseConfig
-	Redis            RedisConfig
-	Password         PasswordConfig
-	InternalSecurity InternalSecurityConfig
+	Server           ServerConfig           `yaml:"server"`
+	JWT              JWTConfig              `yaml:"jwt"`
+	Database         DatabaseConfig         `yaml:"database"`
+	Redis            RedisConfig            `yaml:"redis"`
+	Password         PasswordConfig         `yaml:"password"`
+	InternalSecurity InternalSecurityConfig `yaml:"internal-security"`
 }
 
 type ServerConfig struct {
-	Port string
+	Port string `yaml:"port"`
 }
 
 type JWTConfig struct {
-	Secret             string
-	Expiry             string
-	RefreshTokenExpiry string
+	Secret             string `yaml:"secret"`
+	Expiry             string `yaml:"expiry"`
+	RefreshTokenExpiry string `yaml:"refresh-token-expiry"`
 }
 
 type DatabaseConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
-	DSN      string
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"dbname"`
+	DSN      string `yaml:"dsn"`
 }
 
 type RedisConfig struct {
-	Host     string
-	Port     int
-	Password string
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Password string `yaml:"password"`
 }
 
 type PasswordConfig struct {
-	PasswordResetURL string
+	PasswordResetURL string `yaml:"PasswordResetURL"`
 }
 
 type InternalSecurityConfig struct {
-	UserName string
-	Password string
+	UserName string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 func LoadConfig(path string) error {
