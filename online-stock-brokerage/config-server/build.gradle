@@ -1,0 +1,53 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.mir00r'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+  // Spring Boot Starter for Config Server
+  implementation 'org.springframework.cloud:spring-cloud-config-server'
+
+  // Spring Boot Starter for Web (optional, for health checks)
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+
+  // Spring Boot Starter for Actuator (monitoring)
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+  // Spring Boot Starter for Logging
+  implementation "org.springframework.boot:spring-boot-starter-logging"
+
+  // Spring Boot Starter for Security (to secure the Config Server)
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+
+  // SpringDoc OpenAPI for API documentation
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+  // Testing dependencies
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.springframework.security:spring-security-test'
+}
+
+dependencyManagement {
+  imports {
+    // Spring Cloud dependencies (for Config Server)
+    mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.4"
+  }
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

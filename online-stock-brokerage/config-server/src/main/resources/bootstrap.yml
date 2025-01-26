@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: #spring.profiles.active#
+    default: dev
+    include: composite
+  cloud:
+    config:
+      server: ## ConfigServerAutoConfiguration ##
+        bootstrap: false
+        composite:
+          - type: native
+            search-locations:
+            - file:/app/config/centralconfig/conf
+    ## if enable this, will cause 2 vault template initialise,
+    ## 1 from vault config starter lib, 1 from configserver lib itself because configserver was support vault backed by default.
+    ## So, always disabled the vault template from vault config starter and use vault template come from configserver itself
+    vault:
+      enabled: false
+
+## EncryptionAutoConfiguration ##
+#encrypt:
+#  key-store:
+#    location: classpath:/encrypt/encrypt.pkcs12
+    # try configure via env
+#    password: mir00r123 # should extract to external
+#    alias: encrypt-prd
+#    type: pkcs12

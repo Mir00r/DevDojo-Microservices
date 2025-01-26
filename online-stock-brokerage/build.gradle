@@ -1,0 +1,29 @@
+plugins {
+//  id "org.sonarqube"
+}
+
+description = "${rootProjectDesc}"
+
+defaultTasks "projects"
+
+wrapper {
+    gradleVersion = "${gradlewVersion}"
+}
+
+allprojects {
+    group = "${projectGroup}"
+    version = "${projectGroupVersion}"
+
+    task version {
+        group = "Help"
+        description = "Print project version"
+        doLast {
+            println project.group +":"+ project.name +":"+ project.version +" - "+ project.description
+        }
+    }
+}
+
+//apply from: "gradle/sonar.gradle"
+//apply from: "gradle/toolchain.gradle"
+//apply from: "gradle/git-properties.gradle"
+

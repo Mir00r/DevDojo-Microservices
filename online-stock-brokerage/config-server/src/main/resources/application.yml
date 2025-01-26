@@ -1,0 +1,34 @@
+server:
+  port: 8888  # Default port for Config Server
+
+spring:
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: USER, ADMIN
+#  cloud:
+#    config:
+#      server:
+#        git:
+#          uri: https://github.com/your-repo/config-repo  # Git repository for configurations
+#          clone-on-start: true  # Clone the repo on startup
+#          search-paths: '{application}'  # Look for configuration files in subdirectories
+
+application:
+  actuator-security:
+    user:
+      name: actuator
+      password: actuator
+      authorities: ROLE_ACTUATOR
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+logging:
+  level:
+    root: info
+    '[com.mir00r]': debug
+    '[org.springframework.security]': info

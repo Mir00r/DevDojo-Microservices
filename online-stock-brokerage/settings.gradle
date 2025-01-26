@@ -1,0 +1,32 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://repo.spring.io/milestone' }
+        gradlePluginPortal()
+        mavenLocal()
+        mavenCentral()
+    }
+    plugins {
+        id 'com.google.cloud.tools.jib' version "${jibPluginVersion}"
+        id 'com.gorylenko.gradle-git-properties' version "${gitPropertiesPluginVersion}"
+        id 'io.spring.nohttp' version "${noHttpPluginVersion}"
+        id 'io.spring.dependency-management' version "${springDependencyManagement}"
+        id 'org.liquibase.gradle' version "${liquibasePluginVersion}"
+//    id 'org.sonarqube' version "${sonarqubePluginVersion}"
+        id 'org.springframework.boot' version "${springBootVersion}"
+    }
+}
+
+plugins {
+    id "org.gradle.toolchains.foojay-resolver-convention" version "${toolchainsRepoVersion}"
+}
+
+rootProject.name = "${rootProjectName}"
+
+// apply project prefix because eclipse not allow to import same project name into same workspace
+// order by ALPHABETICAL order
+[
+        "config-server",      // config server related microservice
+].forEach { dir ->
+    include dir
+    project(":${dir}").name = "${projectPrefix}${dir}"
+}

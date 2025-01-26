@@ -1,0 +1,14 @@
+{
+  "__example": {
+    "projectFolder": "this is project folder name",
+    "mainProjectName": "this is gradle projects name",
+    "mainOcpImage": "this is openshift project docker image name",
+    "deploymentConfig": "this is openshift DeploymentConfig Name"
+  },
+  "config-server": {
+    "projectFolder": "config-server",
+    "mainProjectName": "online-stock-brokerage-config-server",
+    "mainOcpImage": "online-stock-brokerage-config-server",
+    "deploymentConfig": "online-stock-brokerage-config-server"
+  }
+}
