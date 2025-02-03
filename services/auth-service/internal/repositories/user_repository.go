@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-// UserRepository defines methods for interacting with the users table
+// UserRepository defines methods for interacting with the auth table
 type UserRepository struct {
 	DB *gorm.DB
 }

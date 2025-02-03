@@ -22,7 +22,7 @@ func NewProtectedUserController(userService services.UserService) *ProtectedUser
 	}
 }
 
-// GetAllUsers retrieves all users (Admin only)
+// GetAllUsers retrieves all auth (Admin only)
 func (c *ProtectedUserController) GetAllUsers(ctx *gin.Context) {
 	users, err := c.UserService.GetAllUsers(ctx, 0, 10)
 	if err != nil {

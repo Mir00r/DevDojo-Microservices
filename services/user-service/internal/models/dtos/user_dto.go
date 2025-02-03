@@ -88,9 +88,9 @@ func ToUserResponse(user *entities.User) *UserResponse {
 	}
 }
 
-// PaginatedUserResponse is used for returning a list of users with pagination
+// PaginatedUserResponse is used for returning a list of auth with pagination
 type PaginatedUserResponse struct {
-	Users      []UserResponse `json:"users"`
+	Users      []UserResponse `json:"auth"`
 	TotalCount int64          `json:"totalCount"`
 	Page       int            `json:"page"`
 	PerPage    int            `json:"perPage"`

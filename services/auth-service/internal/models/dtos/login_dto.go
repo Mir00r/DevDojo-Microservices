@@ -41,3 +41,10 @@ type UserResponse struct {
 	TenantID       string     `json:"tenantId,omitempty"`
 	MFAEnabled     bool       `json:"isMfaEnabled"`
 }
+
+type UserAPIResponse struct {
+	Error   bool         `json:"error"`
+	Code    int          `json:"code"`
+	Message string       `json:"message"`
+	Data    UserResponse `json:"data"`
+}

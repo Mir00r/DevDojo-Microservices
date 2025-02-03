@@ -61,7 +61,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*ent
 	return &user, nil
 }
 
-// GetAllUsers retrieves all users with pagination
+// GetAllUsers retrieves all auth with pagination
 func (r *userRepository) GetAllUsers(ctx context.Context, limit, offset int) ([]entities.User, int64, error) {
 	var users []entities.User
 	var totalCount int64

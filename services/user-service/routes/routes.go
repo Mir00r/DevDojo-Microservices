@@ -60,6 +60,6 @@ func initializeInternalRoutes(router *gin.Engine, controller *controllers.Intern
 		internalGroup.GET("/:userId/details", controller.GetUserDetails) // Fetch user details (with all internal fields)
 		//internalGroup.PUT("/:userId/activate", controllers.ActivateUser)     // Activate user account
 		//internalGroup.PUT("/:userId/deactivate", controllers.DeactivateUser) // Deactivate user account
-		//internalGroup.GET("/search", controllers.SearchUsers)                // Search users by filters
+		//internalGroup.GET("/search", controllers.SearchUsers)                // Search auth by filters
 	}
 }

@@ -103,7 +103,7 @@ func (c *InternalUserController) GetUserDetails(ctx *gin.Context) {
 //	ctx.JSON(http.StatusOK, gin.H{"message": "User deactivated successfully"})
 //}
 //
-//// SearchUsers searches for users based on filters
+//// SearchUsers searches for auth based on filters
 //func (c *InternalUserController) SearchUsers(ctx *gin.Context) {
 //	var req dtos.UserSearchRequest
 //	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -111,11 +111,11 @@ func (c *InternalUserController) GetUserDetails(ctx *gin.Context) {
 //		return
 //	}
 //
-//	users, err := c.UserService.SearchUsers(&req)
+//	auth, err := c.UserService.SearchUsers(&req)
 //	if err != nil {
 //		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 //		return
 //	}
 //
-//	ctx.JSON(http.StatusOK, users)
+//	ctx.JSON(http.StatusOK, auth)
 //}

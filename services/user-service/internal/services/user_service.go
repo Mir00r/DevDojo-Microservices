@@ -116,7 +116,7 @@ func (s *userService) GetUserByID(ctx context.Context, userID string) (*dtos.Use
 	return dtos.ToUserResponse(user), nil
 }
 
-// GetAllUsers retrieves a paginated list of users
+// GetAllUsers retrieves a paginated list of auth
 func (s *userService) GetAllUsers(ctx context.Context, limit, offset int) (*dtos.PaginatedUserResponse, error) {
 	if limit <= 0 || offset < 0 {
 		return nil, errors.ErrInvalidPagination
