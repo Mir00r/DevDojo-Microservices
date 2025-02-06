@@ -1,6 +1,6 @@
 const {DataTypes} = require('sequelize');
 const sequelize = require('../../../../authentication-service/src/configs/database');
-const User = require('../../../../authentication-service/src/domains/auth/models/user');
+const User = require('../../../../authentication-service/src/domains/auth/models/user.model');
 
 const Review = sequelize.define('Review', {
     id: {type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true},
