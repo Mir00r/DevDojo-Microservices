@@ -8,6 +8,11 @@
     "schema": "public",
     "dialectOptions": {
       "multipleStatements": true
+    },
+    "define": {
+      "schema": "auth",
+      "timestamps": true,
+      "underscored": true
     }
   },
   "test": {

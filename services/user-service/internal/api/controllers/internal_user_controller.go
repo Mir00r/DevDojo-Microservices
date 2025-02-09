@@ -26,13 +26,13 @@ func NewInternalUserController(userService services.UserService) *InternalUserCo
 func (c *InternalUserController) CreateUser(ctx *gin.Context) {
 	var req dtos.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	user, err := c.UserService.CreateUser(ctx, req)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -42,14 +42,14 @@ func (c *InternalUserController) CreateUser(ctx *gin.Context) {
 func (c *InternalUserController) ValidateUser(ctx *gin.Context) {
 	var req dtos.ValidateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	// Call service to validate the user
 	user, err := c.UserService.ValidateUser(ctx, req.Email, req.Password)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -62,7 +62,7 @@ func (c *InternalUserController) GetUserDetails(ctx *gin.Context) {
 
 	user, err := c.UserService.GetUserByID(ctx, userId)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 

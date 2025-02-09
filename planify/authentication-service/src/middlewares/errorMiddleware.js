@@ -1,5 +1,5 @@
 /**
- * Centralized error-handling middleware.
+ * Centralized error-handling middlewares.
  */
 const errorHandler = (err, req, res, next) => {
     console.error(err.stack);

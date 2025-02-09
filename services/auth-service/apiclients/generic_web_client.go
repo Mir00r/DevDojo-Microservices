@@ -83,7 +83,7 @@ func (wc *WebClient) Send(method, endpoint string, body interface{}, response in
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	// Apply authentication middleware
+	// Apply authentication middlewares
 	if wc.Config.AuthMiddleware != nil {
 		wc.Config.AuthMiddleware(req)
 	}

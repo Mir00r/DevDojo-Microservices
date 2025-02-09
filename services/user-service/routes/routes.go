@@ -13,7 +13,7 @@ func SetupRoutes(
 	protectedUserController *controllers.ProtectedUserController,
 	internalUserController *controllers.InternalUserController,
 ) {
-	// Attach exception middleware
+	// Attach exception middlewares
 	router.Use(middlewares.ErrorHandler())
 
 	// Initialize Public API routes
@@ -38,7 +38,7 @@ func initializePublicRoutes(router *gin.Engine, controller *controllers.PublicUs
 // initializeProtectedRoutes sets up routes for Protected APIs
 func initializeProtectedRoutes(router *gin.Engine, controller *controllers.ProtectedUserController) {
 	protectedGroup := router.Group("/v1/protected/user")
-	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
+	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middlewares
 	{
 		protectedGroup.GET("", controller.GetAllUsers)           // Admin only
 		protectedGroup.GET("/:userId", controller.GetUserByID)   // Admin/User (self-access)
@@ -53,7 +53,7 @@ func initializeProtectedRoutes(router *gin.Engine, controller *controllers.Prote
 // initializeInternalRoutes sets up routes for Internal APIs
 func initializeInternalRoutes(router *gin.Engine, controller *controllers.InternalUserController) {
 	internalGroup := router.Group("/v1/internal/user")
-	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
+	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middlewares
 	{
 		internalGroup.POST("", controller.CreateUser)                    // Create a new user
 		internalGroup.POST("/validate", controller.ValidateUser)         // Validate a user

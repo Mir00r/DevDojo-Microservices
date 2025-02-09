@@ -37,14 +37,14 @@ func (ctrl *InternalAuthController) ValidateToken(c *gin.Context) {
 
 	// Validate the incoming request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	// Call the service layer to validate the token
 	response, err := ctrl.InternalAuthService.ValidateToken(req.Token)
 	if err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 

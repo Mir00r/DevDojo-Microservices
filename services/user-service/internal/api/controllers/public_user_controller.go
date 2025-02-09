@@ -35,7 +35,7 @@ func (c *PublicUserController) CreateUser(ctx *gin.Context) {
 	// Call the service to create a new user
 	user, err := c.UserService.CreateUser(ctx, req)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -50,7 +50,7 @@ func (c *PublicUserController) GetUser(ctx *gin.Context) {
 	// Call the service to fetch user details
 	user, err := c.UserService.GetUserByID(ctx, userId)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 

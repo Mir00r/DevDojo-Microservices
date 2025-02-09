@@ -3,7 +3,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const authRoutes = require('./routes/authRoutes');
-// const userRoutes = require('./routes/user.routes');
 
 const app = express();
 
@@ -15,12 +14,28 @@ app.use(morgan('dev'));   // Logging
 
 // Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({error: 'Internal Server Error'});
+
+    // Send more specific error responses
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+
+    res.status(statusCode).json({
+        status: 'error',
+        message,
+        ...(process.env.NODE_ENV === 'development' && {stack: err.stack})
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        status: 'error',
+        message: 'Route not found'
+    });
 });
 
 module.exports = app;

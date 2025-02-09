@@ -13,7 +13,7 @@ func SetupRoutes(
 	protectedAuthController *controllers.ProtectedAuthController,
 	internalAuthController *controllers.InternalAuthController,
 ) {
-	// Attach exception middleware
+	// Attach exception middlewares
 	router.Use(middlewares.ErrorHandler())
 
 	// Initialize Public API routes
@@ -40,7 +40,7 @@ func initializePublicRoutes(router *gin.Engine, controller *controllers.PublicAu
 // initializeProtectedRoutes sets up routes for Protected APIs
 func initializeProtectedRoutes(router *gin.Engine, controller *controllers.ProtectedAuthController) {
 	protectedGroup := router.Group("/v1/protected/auth")
-	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middleware
+	protectedGroup.Use(middlewares.AuthMiddleware()) // Apply JWT validation middlewares
 	{
 		protectedGroup.POST("/logout", controller.ProtectedLogout)
 		protectedGroup.POST("/refresh-token", controller.RefreshToken)
@@ -54,7 +54,7 @@ func initializeProtectedRoutes(router *gin.Engine, controller *controllers.Prote
 // initializeInternalRoutes sets up routes for Internal APIs
 func initializeInternalRoutes(router *gin.Engine, controller *controllers.InternalAuthController) {
 	internalGroup := router.Group("/v1/internal/auth")
-	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middleware
+	internalGroup.Use(middlewares.BasicAuthMiddleware) // Apply Basic Auth middlewares
 	{
 		internalGroup.POST("/validate-token", controller.ValidateToken)
 		internalGroup.GET("/service-health", controller.ServiceHealth)

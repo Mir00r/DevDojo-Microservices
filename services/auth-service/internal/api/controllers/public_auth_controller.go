@@ -39,14 +39,14 @@ func (ctrl *PublicAuthController) PublicLogin(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	// Authenticate the user
 	token, err := ctrl.AuthService.Authenticate(req)
 	if err != nil || token == nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -69,13 +69,13 @@ func (ctrl *PublicAuthController) PublicRegister(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	// Register the user
 	if err := ctrl.AuthService.RegisterUser(req); err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -99,13 +99,13 @@ func (ctrl *PublicAuthController) PasswordReset(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	// Initiate the password reset process
 	if err := ctrl.TokenService.InitiatePasswordReset(req); err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -129,13 +129,13 @@ func (ctrl *PublicAuthController) ConfirmPasswordReset(c *gin.Context) {
 
 	// Parse and validate the request payload
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	// Confirm the password reset
 	if err := ctrl.TokenService.ResetPassword(req); err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 

@@ -26,7 +26,7 @@ func NewProtectedUserController(userService services.UserService) *ProtectedUser
 func (c *ProtectedUserController) GetAllUsers(ctx *gin.Context) {
 	users, err := c.UserService.GetAllUsers(ctx, 0, 10)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -39,7 +39,7 @@ func (c *ProtectedUserController) GetUserByID(ctx *gin.Context) {
 
 	user, err := c.UserService.GetUserByID(ctx, userId)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -52,13 +52,13 @@ func (c *ProtectedUserController) UpdateUser(ctx *gin.Context) {
 
 	var req dtos.UpdateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	user, err := c.UserService.UpdateUser(ctx, userId, req)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -71,7 +71,7 @@ func (c *ProtectedUserController) DeleteUser(ctx *gin.Context) {
 
 	err := c.UserService.DeleteUser(ctx, userId)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -102,13 +102,13 @@ func (c *ProtectedUserController) AssignRoles(ctx *gin.Context) {
 
 	var req dtos.AssignRoleRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = ctx.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
 	err := c.UserService.AssignRole(ctx, userId, req.Role)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -122,7 +122,7 @@ func (c *ProtectedUserController) RemoveRole(ctx *gin.Context) {
 
 	err := c.UserService.RemoveRole(ctx, userId)
 	if err != nil {
-		_ = ctx.Error(err) // Propagate error to middleware
+		_ = ctx.Error(err) // Propagate error to middlewares
 		return
 	}
 

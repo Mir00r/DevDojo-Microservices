@@ -90,7 +90,7 @@ func (ctrl *ProtectedAuthController) EnableMFA(c *gin.Context) {
 	// Call the MFAService to enable MFA and generate an OTP
 	response, err := ctrl.MFAService.EnableMFA(userID)
 	if err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -105,7 +105,7 @@ func (ctrl *ProtectedAuthController) VerifyMFA(c *gin.Context) {
 
 	// Bind the request payload to the VerifyMFARequest struct
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
@@ -115,7 +115,7 @@ func (ctrl *ProtectedAuthController) VerifyMFA(c *gin.Context) {
 
 	// Call the MFAService to verify the OTP
 	if err := ctrl.MFAService.VerifyMFA(userID, req.OTP); err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 
@@ -128,7 +128,7 @@ func (ctrl *ProtectedAuthController) RefreshToken(c *gin.Context) {
 
 	// Parse JSON request body
 	if err := c.ShouldBindJSON(&req); err != nil {
-		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middleware
+		_ = c.Error(errors.ErrInvalidPayload) // Propagate error to middlewares
 		return
 	}
 
@@ -141,7 +141,7 @@ func (ctrl *ProtectedAuthController) RefreshToken(c *gin.Context) {
 	// Refresh the token
 	response, err := ctrl.TokenService.RefreshToken(req)
 	if err != nil {
-		_ = c.Error(err) // Propagate error to middleware
+		_ = c.Error(err) // Propagate error to middlewares
 		return
 	}
 
