@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 require('dotenv').config();
 
 /**
@@ -19,4 +20,43 @@ const verifyToken = (token) => {
     return jwt.verify(token, process.env.JWT_SECRET);
 };
 
-module.exports = {generateToken, verifyToken};
+const generateJWT = (user) => {
+    return jwt.sign(
+        {
+            id: user.id,
+            email: user.email,
+            role: user.role?.name || 'USER'
+        },
+        process.env.JWT_SECRET,
+        {expiresIn: '1d'}
+    );
+}
+
+const generateVerificationToken = (user) => {
+    return jwt.sign(
+        {id: user.id},
+        process.env.JWT_SECRET,
+        {expiresIn: '24h'}
+    );
+}
+
+const generatePasswordResetToken = () => {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+const sanitizeUser = (user) => {
+    const sanitized = user.toJSON();
+    delete sanitized.password;
+    delete sanitized.passwordResetToken;
+    delete sanitized.passwordResetExpires;
+    return sanitized;
+}
+
+module.exports = {
+    generateToken,
+    verifyToken,
+    generateJWT,
+    generateVerificationToken,
+    generatePasswordResetToken,
+    sanitizeUser
+};

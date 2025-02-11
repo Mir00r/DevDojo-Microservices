@@ -25,36 +25,4 @@ const validate = (validations) => {
     };
 };
 
-// const validate = (schema) => {
-//     return async (req, res, next) => {
-//         try {
-//             const validatedBody = await schema.validateAsync(req.body, {
-//                 abortEarly: false,
-//                 stripUnknown: true
-//             });
-//
-//             // Replace req.body with validated data
-//             req.body = validatedBody;
-//             next();
-//         } catch (error) {
-//             if (error.isJoi) {
-//                 // Format Joi validation errors
-//                 const errors = error.details.map(detail => ({
-//                     field: detail.context.key,
-//                     message: detail.message
-//                 }));
-//
-//                 return res.status(400).json({
-//                     status: 'error',
-//                     message: 'Validation failed',
-//                     errors
-//                 });
-//             }
-//
-//             // Pass other errors to error handler
-//             next(error);
-//         }
-//     };
-// };
-
 module.exports = validate;
