@@ -15,6 +15,23 @@ router.post('/public/v1/forgot-password', validate(authValidation.forgotPassword
 router.post('/public/v1/reset-password', validate(authValidation.resetPassword), PublicAuthController.resetPassword);
 router.post('/public/v1/verify-email', PublicAuthController.verifyEmail);
 
+
+// Internal routes with Basic Auth OR Admin JWT
+router.use('/internal/v1', (req, res, next) => {
+    // Check if Basic Auth is used
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Basic ')) {
+        return authMiddleware.internalBasicAuth(req, res, next);
+    }
+    // If not Basic Auth, check for Admin JWT
+    return authMiddleware.requireRole('ADMIN')(req, res, next);
+});
+// Internal routes
+router.get('/internal/v1/users', InternalAuthController.getAllUsers);
+router.get('/internal/v1/users/:id', InternalAuthController.getUserById);
+router.put('/internal/v1/users/:id/role', validate(authValidation.updateRole), InternalAuthController.updateUserRole);
+router.delete('/internal/v1/users/:id', InternalAuthController.deleteUser);
+
 // Protected routes (require authentication)
 router.use(authMiddleware.authenticate);
 router.post('/protected/v1/logout', ProtectedAuthController.logout);
@@ -23,12 +40,7 @@ router.post('/protected/v1/change-password', validate(authValidation.changePassw
 router.get('/protected/v1/me', ProtectedAuthController.getCurrentUser);
 router.put('/protected/v1/me', validate(authValidation.updateProfile), ProtectedAuthController.updateProfile);
 
-// Internal routes (require admin role)
-router.use(authMiddleware.requireRole('ADMIN'));
-router.get('/internal/v1/users', InternalAuthController.getAllUsers);
-router.get('/internal/v1/users/:id', InternalAuthController.getUserById);
-router.put('/internal/v1/users/:id/role', validate(authValidation.updateRole), InternalAuthController.updateUserRole);
-router.delete('/internal/v1/users/:id', InternalAuthController.deleteUser);
+
 
 module.exports = router;
 

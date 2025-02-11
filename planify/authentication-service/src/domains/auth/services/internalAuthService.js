@@ -4,6 +4,7 @@ const {sequelize} = require('../../../configs/database');
 const {AppError} = require("../../../utils/errorHandler");
 const jwtUtils = require('../../../utils/jwtUtils');
 const {User, Role} = require('../../../../models');
+const {Op} = require("sequelize");
 
 
 class InternalAuthService {

@@ -64,6 +64,32 @@ class AuthMiddleware {
         }
         next();
     };
+
+    internalBasicAuth = (req, res, next) => {
+        try {
+            // Get authorization header
+            const authHeader = req.headers.authorization;
+
+            if (!authHeader || !authHeader.startsWith('Basic ')) {
+                throw new AppError('Basic authentication required', 401);
+            }
+
+            // Extract credentials
+            const base64Credentials = authHeader.split(' ')[1];
+            const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+            const [username, password] = credentials.split(':');
+
+            // Check credentials
+            if (username !== process.env.INTERNAL_API_USERNAME ||
+                password !== process.env.INTERNAL_API_PASSWORD) {
+                throw new AppError('Invalid credentials', 401);
+            }
+
+            next();
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 
 module.exports = new AuthMiddleware();
