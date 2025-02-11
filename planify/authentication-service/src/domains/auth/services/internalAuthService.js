@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const {sequelize} = require('../../../configs/database');
 const {AppError} = require("../../../utils/errorHandler");
 const jwtUtils = require('../../../utils/jwtUtils');
+const {getPaginationParams, formatPaginatedResponse} = require('../../../utils/paginationUtils');
 const {User, Role} = require('../../../../models');
 const {Op} = require("sequelize");
 
@@ -12,7 +13,7 @@ class InternalAuthService {
     async getUserById(userId) {
         // Find user with their role information
         const user = await User.findOne({
-            where: { id: userId },
+            where: {id: userId},
             include: [{
                 model: Role,
                 as: 'role',
@@ -37,32 +38,56 @@ class InternalAuthService {
         return jwtUtils.sanitizeUser(user);
     }
 
-    async getAllUsers({page = 1, limit = 10, search = ''}) {
-        const offset = (page - 1) * limit;
-        const where = search ? {
-            [Op.or]: [
-                {name: {[Op.iLike]: `%${search}%`}},
-                {email: {[Op.iLike]: `%${search}%`}}
-            ]
-        } : {};
+    async getAllUsers(query) {
+        const {limit, offset, page} = getPaginationParams(query);
 
+        // Build filter conditions
+        const whereClause = {};
+
+        // Name search
+        if (query.search) {
+            whereClause[Op.or] = [
+                {name: {[Op.iLike]: `%${query.search}%`}},
+                {email: {[Op.iLike]: `%${query.search}%`}}
+            ];
+        }
+
+        // Role filter
+        if (query.roleId) {
+            whereClause.roleId = query.roleId;
+        }
+
+        // Active status filter
+        if (query.isActive !== undefined) {
+            whereClause.isActive = query.isActive === 'true';
+        }
+
+        // Date range filter
+        if (query.startDate && query.endDate) {
+            whereClause.createdAt = {
+                [Op.between]: [new Date(query.startDate), new Date(query.endDate)]
+            };
+        }
+
+        // Get users with pagination and filters
         const users = await User.findAndCountAll({
-            where,
+            where: whereClause,
             include: [{
                 model: Role,
                 as: 'role',
-                attributes: ['name']
+                attributes: ['id', 'name']
             }],
+            attributes: {
+                exclude: ['password'] // Exclude sensitive data
+            },
+            order: [
+                [query.sortBy || 'createdAt', query.sortOrder || 'DESC']
+            ],
             limit,
-            offset,
-            order: [['createdAt', 'DESC']]
+            offset
         });
 
-        return {
-            users: users.rows.map(jwtUtils.sanitizeUser),
-            total: users.count,
-            pages: Math.ceil(users.count / limit)
-        };
+        return formatPaginatedResponse(users, page, limit);
     }
 
     async updateUserRole(userId, roleId) {

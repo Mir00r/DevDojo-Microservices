@@ -1,5 +1,7 @@
 const {Role, User} = require('../../../../models');
 const {AppError} = require('../../../utils/errorHandler');
+const {getPaginationParams, formatPaginatedResponse} = require('../../../utils/paginationUtils');
+const {Op} = require("sequelize");
 
 class RoleService {
     async createRole(name, description) {
@@ -15,16 +17,50 @@ class RoleService {
         });
     }
 
-    async getAllRoles() {
-        const roles = await Role.findAll({
+    async getAllRoles(query) {
+        const {limit, offset, page} = getPaginationParams(query);
+
+        // Build filter conditions
+        const whereClause = {};
+
+        // Name search
+        if (query.search) {
+            whereClause.name = {
+                [Op.iLike]: `%${query.search}%`
+            };
+        }
+
+        // Get roles with pagination and filters
+        const roles = await Role.findAndCountAll({
+            where: whereClause,
             include: [{
                 model: User,
                 as: 'users',
                 attributes: ['id', 'name', 'email'],
-            }]
+                separate: true, // Perform separate query for better performance
+                limit: 5 // Limit the number of users shown per role
+            }],
+            order: [
+                [query.sortBy || 'createdAt', query.sortOrder || 'DESC']
+            ],
+            limit,
+            offset
         });
 
-        return roles;
+        // Add user count for each role
+        const rolesWithCount = {
+            count: roles.count,
+            rows: await Promise.all(roles.rows.map(async (role) => {
+                const userCount = await User.count({
+                    where: {roleId: role.id}
+                });
+                const roleJson = role.toJSON();
+                roleJson.userCount = userCount;
+                return roleJson;
+            }))
+        };
+
+        return formatPaginatedResponse(rolesWithCount, page, limit);
     }
 
     async getRoleById(id) {

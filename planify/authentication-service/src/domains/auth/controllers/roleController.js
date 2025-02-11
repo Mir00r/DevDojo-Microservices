@@ -13,7 +13,7 @@ class RoleController {
     });
 
     getAllRoles = catchAsync(async (req, res) => {
-        const roles = await RoleService.getAllRoles();
+        const roles = await RoleService.getAllRoles(req.query);
 
         res.status(200).json({
             status: 'success',
