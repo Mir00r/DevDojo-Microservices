@@ -1,23 +1,23 @@
 const RoleService = require('../services/roleService');
 const {catchAsync} = require('../../../utils/errorHandler');
+const {ApiResponse} = require("../../../utils/apiResponse");
 
 class RoleController {
     createRole = catchAsync(async (req, res) => {
         const {name, description} = req.body;
         const role = await RoleService.createRole(name, description);
 
-        res.status(201).json({
-            status: 'success',
-            data: {role}
+        return ApiResponse.created(res, {
+            message: 'Role created successfully',
+            data: { role }
         });
     });
 
     getAllRoles = catchAsync(async (req, res) => {
         const roles = await RoleService.getAllRoles(req.query);
 
-        res.status(200).json({
-            status: 'success',
-            data: {roles}
+        return ApiResponse.success(res, {
+            data: { roles }
         });
     });
 
@@ -25,9 +25,8 @@ class RoleController {
         const {id} = req.params;
         const role = await RoleService.getRoleById(id);
 
-        res.status(200).json({
-            status: 'success',
-            data: {role}
+        return ApiResponse.success(res, {
+            data: { role }
         });
     });
 
@@ -36,9 +35,8 @@ class RoleController {
         const {name, description} = req.body;
         const role = await RoleService.updateRole(id, {name, description});
 
-        res.status(200).json({
-            status: 'success',
-            data: {role}
+        return ApiResponse.success(res, {
+            data: { role }
         });
     });
 
@@ -46,10 +44,7 @@ class RoleController {
         const {id} = req.params;
         await RoleService.deleteRole(id);
 
-        res.status(204).json({
-            status: 'success',
-            data: null
-        });
+        return ApiResponse.noContent(res);
     });
 }
 

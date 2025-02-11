@@ -1,5 +1,6 @@
 const PublicAuthService = require('../services/publicAuthService');
 const {catchAsync, AppError} = require("../../../utils/errorHandler");
+const {ApiResponse} = require("../../../utils/apiResponse");
 
 class PublicAuthController {
 
@@ -7,8 +8,9 @@ class PublicAuthController {
         const {name, email, password, roleId} = req.body;
         const {user, token} = await PublicAuthService.registerUser(name, email, password, roleId);
 
-        res.status(201).json({
-            status: 'success', data: {user, token}
+        return ApiResponse.created(res, {
+            message: 'User registered successfully',
+            data: {user, token}
         });
     });
 
@@ -16,8 +18,8 @@ class PublicAuthController {
         const {email, password} = req.body;
         const {user, accessToken, refreshToken} = await PublicAuthService.loginUser(email, password);
 
-        res.status(200).json({
-            status: 'success', data: {user, accessToken, refreshToken}
+        return ApiResponse.success(res, {
+            data: {user, accessToken, refreshToken}
         });
     });
 
@@ -25,8 +27,8 @@ class PublicAuthController {
         const {email} = req.body;
         await PublicAuthService.forgotPassword(email);
 
-        res.status(200).json({
-            status: 'success', message: 'Password reset instructions sent to email'
+        return ApiResponse.success(res, {
+            message: 'Password reset instructions sent to email'
         });
     });
 
@@ -34,8 +36,8 @@ class PublicAuthController {
         const {token, password} = req.body;
         await PublicAuthService.resetPassword(token, password);
 
-        res.status(200).json({
-            status: 'success', message: 'Password reset successful'
+        return ApiResponse.success(res, {
+            message: 'Password reset successful'
         });
     });
 
@@ -54,9 +56,11 @@ class PublicAuthController {
 
         const result = await PublicAuthService.verifyEmail(token);
 
-        res.status(200).json({
-            status: 'success', message: 'Email verified successfully', data: {
-                email: result.email, verifiedAt: result.verifiedAt
+        return ApiResponse.success(res, {
+            message: 'Email verified successfully',
+            data: {
+                email: result.email,
+                verifiedAt: result.verifiedAt
             }
         });
     });

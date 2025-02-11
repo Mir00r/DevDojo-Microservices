@@ -1,5 +1,6 @@
 const ProtectedAuthService = require('../services/protectedAuthService');
 const {catchAsync, AppError} = require("../../../utils/errorHandler");
+const {ApiResponse} = require("../../../utils/apiResponse");
 
 class ProtectedAuthController {
 
@@ -13,9 +14,8 @@ class ProtectedAuthController {
 
         const tokens = await ProtectedAuthService.refreshToken(refreshToken);
 
-        res.json({
-            status: 'success',
-            data: tokens
+        return ApiResponse.success(res, {
+            data: {tokens}
         });
     });
 
@@ -28,18 +28,18 @@ class ProtectedAuthController {
 
         await ProtectedAuthService.logout(refreshToken);
 
-        res.json({
-            status: 'success',
-            message: 'Logged out successfully'
+        return ApiResponse.success(res, {
+            message: 'Logged out successfully',
+            data: {res}
         });
     });
 
     logoutAll = catchAsync(async (req, res) => {
         await ProtectedAuthService.logoutAll(req.user.id);
 
-        res.json({
-            status: 'success',
-            message: 'Logged out from all devices'
+        return ApiResponse.success(res, {
+            message: 'Logged out from all devices',
+            data: {res}
         });
     });
 
@@ -47,17 +47,16 @@ class ProtectedAuthController {
         const {currentPassword, newPassword} = req.body;
         await ProtectedAuthService.changePassword(req.user.id, currentPassword, newPassword);
 
-        res.status(200).json({
-            status: 'success',
-            message: 'Password changed successfully'
+        return ApiResponse.success(res, {
+            message: 'Password changed successfully',
+            data: {res}
         });
     });
 
     getCurrentUser = catchAsync(async (req, res) => {
         const user = await ProtectedAuthService.getUserById(req.user.id);
 
-        res.status(200).json({
-            status: 'success',
+        return ApiResponse.success(res, {
             data: {user}
         });
     });
@@ -66,8 +65,7 @@ class ProtectedAuthController {
         const {name, email} = req.body;
         const user = await ProtectedAuthService.updateProfile(req.user.id, {name, email});
 
-        res.status(200).json({
-            status: 'success',
+        return ApiResponse.success(res, {
             data: {user}
         });
     });
