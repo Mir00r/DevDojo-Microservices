@@ -1,6 +1,7 @@
 const PublicAuthService = require('../services/publicAuthService');
 const {catchAsync, AppError} = require("../../../utils/errorHandler");
 const {ApiResponse} = require("../../../utils/apiResponse");
+const {LoginRequestDto, LoginResponseDto} = require('../dtos/login.dto');
 
 class PublicAuthController {
 
@@ -15,11 +16,13 @@ class PublicAuthController {
     });
 
     login = catchAsync(async (req, res) => {
-        const {email, password} = req.body;
-        const {user, accessToken, refreshToken} = await PublicAuthService.loginUser(email, password);
-
+        // Validate and transform input
+        const loginDto = LoginRequestDto.validate(req.body);
+        // Process login
+        const result = await PublicAuthService.login(loginDto);
+        // Transform and send response
         return ApiResponse.success(res, {
-            data: {user, accessToken, refreshToken}
+            data: result
         });
     });
 

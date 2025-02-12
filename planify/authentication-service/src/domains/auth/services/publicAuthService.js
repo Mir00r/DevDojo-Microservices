@@ -7,7 +7,9 @@ const {User, Role, PasswordReset} = require('../../../../models');
 const emailService = require('../../../utils/emailService');
 const jwtUtils = require('../../../utils/jwtUtils');
 const tokenService = require('./tokenService');
+const userRepository = require('../repositories/user.repository');
 const {Op} = require("sequelize");
+const {LoginResponseDto} = require("../dtos/login.dto");
 
 
 class PublicAuthService {
@@ -51,17 +53,11 @@ class PublicAuthService {
         }
     }
 
-    async loginUser(email, password) {
-        const user = await User.findOne({
-            where: {email},
-            include: [{
-                model: Role,
-                as: 'role',
-                attributes: ['name']
-            }]
-        });
+    async login(loginDto) {
+        // Using repository instead of direct model access
+        const user = await userRepository.findByEmail(loginDto.email);
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
             throw new AppError('Invalid email or password', 401);
         }
 
@@ -69,19 +65,17 @@ class PublicAuthService {
             throw new AppError('Please verify your email first', 401);
         }
 
-        // const token = this.generateJWT(user);
-        // Generate tokens
         const accessToken = tokenService.generateAccessToken(user);
         const refreshToken = await tokenService.generateRefreshToken(user);
 
-        // Update last login
-        await user.update({lastLogin: new Date()});
+        // Using repository method
+        await userRepository.updateLastLogin(user.id);
 
-        return {
-            user: jwtUtils.sanitizeUser(user),
+        // Using LoginResponseDto to format response
+        return LoginResponseDto.success(user, {
             accessToken,
             refreshToken
-        };
+        });
     }
 
     async forgotPassword(email) {
@@ -165,14 +159,14 @@ class PublicAuthService {
 
             // Update user password
             await passwordReset.user.update(
-                { password: hashedPassword },
-                { transaction }
+                {password: hashedPassword},
+                {transaction}
             );
 
             // Mark token as used
             await passwordReset.update(
-                { isUsed: true },
-                { transaction }
+                {isUsed: true},
+                {transaction}
             );
 
             await transaction.commit();
