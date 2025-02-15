@@ -8,43 +8,50 @@ const emailService = require('../../../utils/emailService');
 const jwtUtils = require('../../../utils/jwtUtils');
 const tokenService = require('./tokenService');
 const userRepository = require('../repositories/user.repository');
+const PasswordResetRepository = require('../repositories/password.repository');
 const {Op} = require("sequelize");
 const {LoginResponseDto} = require("../dtos/login.dto");
 
 
 class PublicAuthService {
-    async registerUser(name, email, password, roleId = 2) { // Default roleId 2 for regular users
+    /**
+     * Register a new user
+     * @param {RegisterDto} registerDto - Validated registration data
+     * @returns {Promise<Object>} User and token data
+     * @throws {AppError} If email is already registered
+     */
+    async registerUser(registerDto) {
         const transaction = await sequelize.transaction();
 
         try {
-            const existingUser = await User.findOne({
-                where: {email},
-                transaction
-            });
-
+            // Check for existing user
+            const existingUser = await userRepository.findByEmail(registerDto.email);
             if (existingUser) {
                 throw new AppError('Email already registered', 400);
             }
 
-            const hashedPassword = await bcrypt.hash(password, 12);
+            // Hash password
+            const hashedPassword = await bcrypt.hash(registerDto.password, 12);
 
-            const user = await User.create({
-                name,
-                email,
+            // Create user
+            const user = await userRepository.create({
+                name: registerDto.name,
+                email: registerDto.email,
                 password: hashedPassword,
-                roleId
+                roleId: registerDto.roleId
             }, {transaction});
 
+            // Generate and send verification token
             const verificationToken = jwtUtils.generateVerificationToken(user);
-            // Use the email service to send verification email
             await emailService.sendVerificationEmail(user, verificationToken);
 
             await transaction.commit();
 
+            // Generate JWT
             const token = jwtUtils.generateJWT(user);
 
             return {
-                user: jwtUtils.sanitizeUser(user),
+                user,
                 token
             };
         } catch (error) {
@@ -78,6 +85,11 @@ class PublicAuthService {
         });
     }
 
+    /**
+     * Process forgot password request
+     * @param {string} email - User's email address
+     * @throws {AppError} When user is not found
+     */
     async forgotPassword(email) {
         const user = await User.findOne({where: {email}});
 
@@ -89,14 +101,11 @@ class PublicAuthService {
         const resetToken = jwtUtils.generatePasswordResetToken();
         const hashedToken = await bcrypt.hash(resetToken, 12);
 
-        // Invalidate any existing reset tokens for this user
-        await PasswordReset.update(
-            {isUsed: true},
-            {where: {userId: user.id, isUsed: false}}
-        );
+        // Invalidate existing reset tokens
+        await PasswordResetRepository.invalidateExistingTokens(user.id);
 
         // Create new password reset record
-        await PasswordReset.create({
+        await PasswordResetRepository.create({
             userId: user.id,
             token: hashedToken,
             expiresAt: new Date(Date.now() + 3600000), // 1 hour
@@ -107,136 +116,64 @@ class PublicAuthService {
         // await emailService.sendPasswordResetEmail(user.email, resetToken);
     }
 
+    /**
+     * Reset password using token
+     * @param {string} token - Reset token
+     * @param {string} newPassword - New password
+     * @throws {AppError} When token is invalid or expired
+     */
     async resetPassword(token, newPassword) {
-        console.log('Received Token:', token);
-        // Hash the received token the same way
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('hex');
+        // const hashedToken = crypto
+        //     .createHash('sha256')
+        //     .update(token)
+        //     .digest('hex');
 
-        console.log('Hashed Received Token:', hashedToken);
-
-        // First find all valid (not used and not expired) reset records
-        const passwordReset = await PasswordReset.findOne({
-            where: {
-                isUsed: false,
-                expiresAt: {
-                    [Op.gt]: new Date()
-                },
-                token: token
-                // We'll check the token match using bcrypt.compare later
-            },
-            include: [{
-                model: User,
-                as: 'user',
-                attributes: ['id', 'email'] // Only select needed fields
-            }],
-            order: [['createdAt', 'DESC']] // Get the most recent one
-        });
-
-        // Add debug logging
-        console.log('Found password reset record:', passwordReset);
+        // Find valid reset token
+        const passwordReset = await PasswordResetRepository.findValidToken(
+            token
+        );
 
         if (!passwordReset) {
             throw new AppError('No valid password reset request found', 400);
         }
 
-        // Compare the provided token with stored hashed token
-        // const isValidToken = await bcrypt.compare(token, passwordReset.token);
-        // console.log('Token comparison result:', isValidToken);
+        // Update password within transaction
+        await PasswordResetRepository.executePasswordReset(
+            passwordReset,
+            newPassword
+        );
 
-        // if (!isValidToken) {
-        //     throw new AppError('Invalid reset token', 400);
-        // }
-
-        // Update password within a transaction
-        const transaction = await sequelize.transaction();
-
-        try {
-            // Hash new password
-            const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-            // Update user password
-            await passwordReset.user.update(
-                {password: hashedPassword},
-                {transaction}
-            );
-
-            // Mark token as used
-            await passwordReset.update(
-                {isUsed: true},
-                {transaction}
-            );
-
-            await transaction.commit();
-
-            return {
-                status: 'success',
-                message: 'Password has been reset successfully'
-            };
-        } catch (error) {
-            await transaction.rollback();
-            throw new AppError('Failed to reset password', 500);
-        }
+        return {
+            status: 'success',
+            message: 'Password has been reset successfully'
+        };
     }
 
+    /**
+     * Verify user's email address
+     * @param {string} token - Verification token
+     * @throws {AppError} When token is invalid or user not found
+     */
     async verifyEmail(token) {
         try {
-            console.log('Starting email verification with token:', token);
-
             // Verify JWT token
-            console.log('Verifying JWT token...');
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            console.log('Decoded token:', decoded);
 
-            // Find user
-            console.log('Finding user with id:', decoded.id);
-            const user = await User.findOne({
-                where: {id: decoded.id}
-            });
-            console.log('User found:', user ? 'Yes' : 'No');
-
+            // Find and update user
+            const user = await userRepository.findById(decoded.id);
             if (!user) {
                 throw new AppError('User not found', 404);
             }
 
-            console.log('Before update - User emailVerified status:', {
-                id: user.id,
-                email: user.email,
-                emailVerified: user.emailVerified
-            });
-
-            // Update the user - Corrected version
-            const updatedUser = await user.update({
+            // Update email verification status
+            const updatedUser = await userRepository.update(user.id, {
                 emailVerified: true,
-                updatedAt: new Date()
+                emailVerifiedAt: new Date()
             });
 
-            console.log('After update - User status:', {
-                id: updatedUser.id,
-                email: updatedUser.email,
-                emailVerified: updatedUser.emailVerified
-            });
-
-            return {
-                status: 'success',
-                message: 'Email verified successfully',
-                data: {
-                    email: updatedUser.email,
-                    emailVerified: updatedUser.emailVerified
-                }
-            };
+            return updatedUser;
 
         } catch (error) {
-            console.error('Detailed verification error:', {
-                message: error.message,
-                name: error.name,
-                stack: error.stack,
-                token: token,
-                jwtSecret: process.env.JWT_SECRET ? 'Exists' : 'Missing'
-            });
-
             if (error.name === 'JsonWebTokenError') {
                 throw new AppError('Invalid verification token', 400);
             }

@@ -2,16 +2,29 @@ const PublicAuthService = require('../services/publicAuthService');
 const {catchAsync, AppError} = require("../../../utils/errorHandler");
 const {ApiResponse} = require("../../../utils/apiResponse");
 const {LoginRequestDto, LoginResponseDto} = require('../dtos/login.dto');
+const {RegisterDto, AuthResponseDto} = require("../dtos/register.dto");
+const {VerifyEmailRequestDto, EmailVerificationResponseDto} = require("../dtos/emal.dto");
+const {ResetPasswordRequestDto, ForgotPasswordRequestDto} = require("../dtos/password.dto");
 
 class PublicAuthController {
 
+    /**
+     * Register a new user
+     * @param {Express.Request} req - Express request object
+     * @param {Express.Response} res - Express response object
+     * @returns {Promise<void>}
+     */
     register = catchAsync(async (req, res) => {
-        const {name, email, password, roleId} = req.body;
-        const {user, token} = await PublicAuthService.registerUser(name, email, password, roleId);
+        // Validate and transform input data
+        const registerDto = await RegisterDto.validate(req.body);
 
+        // Process registration
+        const result = await PublicAuthService.registerUser(registerDto);
+
+        // Transform and send response
         return ApiResponse.created(res, {
             message: 'User registered successfully',
-            data: {user, token}
+            data: AuthResponseDto.toResponse(result)
         });
     });
 
@@ -26,45 +39,61 @@ class PublicAuthController {
         });
     });
 
+    /**
+     * Handle forgot password request
+     * @param {Express.Request} req - Express request object
+     * @param {Express.Response} res - Express response object
+     */
     forgotPassword = catchAsync(async (req, res) => {
-        const {email} = req.body;
-        await PublicAuthService.forgotPassword(email);
+        // Validate request data using DTO
+        const forgotPasswordDto = new ForgotPasswordRequestDto(req.body);
+
+        // Process forgot password request
+        await PublicAuthService.forgotPassword(forgotPasswordDto.email);
 
         return ApiResponse.success(res, {
             message: 'Password reset instructions sent to email'
         });
     });
 
+    /**
+     * Handle password reset with token
+     * @param {Express.Request} req - Express request object
+     * @param {Express.Response} res - Express response object
+     */
     resetPassword = catchAsync(async (req, res) => {
-        const {token, password} = req.body;
-        await PublicAuthService.resetPassword(token, password);
+        // Validate request data using DTO
+        const resetPasswordDto = new ResetPasswordRequestDto(req.body);
+
+        // Process password reset
+        await PublicAuthService.resetPassword(
+            resetPasswordDto.token,
+            resetPasswordDto.password
+        );
 
         return ApiResponse.success(res, {
             message: 'Password reset successful'
         });
     });
 
+    /**
+     * Handle email verification
+     * @param {Express.Request} req - Express request object
+     * @param {Express.Response} res - Express response object
+     */
     verifyEmail = catchAsync(async (req, res) => {
-        const {token} = req.body;
+        // Validate request data using DTO
+        const verifyEmailDto = new VerifyEmailRequestDto(req.body);
 
-        // Input validation
-        if (!token || typeof token !== 'string') {
-            throw new AppError('Valid verification token is required', 400);
-        }
+        // Process email verification
+        const result = await PublicAuthService.verifyEmail(verifyEmailDto.token);
 
-        // Token length/format validation
-        if (token.length < 10) { // Minimum token length check
-            throw new AppError('Invalid token format', 400);
-        }
-
-        const result = await PublicAuthService.verifyEmail(token);
+        // Transform response using DTO
+        const response = EmailVerificationResponseDto.fromEntity(result);
 
         return ApiResponse.success(res, {
             message: 'Email verified successfully',
-            data: {
-                email: result.email,
-                verifiedAt: result.verifiedAt
-            }
+            data: response
         });
     });
 }
