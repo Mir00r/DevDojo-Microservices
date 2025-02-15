@@ -4,11 +4,13 @@ const ProtectedAuthController = require('../domains/auth/controllers/protectedAu
 const InternalAuthController = require('../domains/auth/controllers/internalAuthController');
 const RoleController = require('../domains/auth/controllers/roleController');
 const PrivilegeController = require('../domains/auth/controllers/privilegeController');
+const MfaController = require('../domains/auth/controllers/mfaController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const validate = require('../middlewares/validateMiddleware');
 const {authValidation} = require('../validations/authValidation');
 const {roleValidation} = require('../validations/roleValidation');
 const {privilegeValidation} = require('../validations/privilegeValidation');
+const {mfaValidation} = require('../validations/mfaValidation');
 
 
 const router = express.Router();
@@ -58,6 +60,12 @@ router.post('/protected/v1/refresh-token', ProtectedAuthController.refresh);
 router.post('/protected/v1/change-password', validate(authValidation.changePassword), ProtectedAuthController.changePassword);
 router.get('/protected/v1/me', ProtectedAuthController.getCurrentUser);
 router.put('/protected/v1/me', validate(authValidation.updateProfile), ProtectedAuthController.updateProfile);
+
+// All MFA routes require authentication
+router.use(authMiddleware.authenticate);
+
+router.post('/protected/v1/mfa/enable', validate(mfaValidation.enable), MfaController.enableMfa);
+router.post('/protected/v1/mfa/verify', validate(mfaValidation.verify), MfaController.verifyMfa);
 
 module.exports = router;
 

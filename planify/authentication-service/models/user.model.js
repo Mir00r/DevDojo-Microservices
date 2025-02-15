@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
                 targetKey: 'id',
                 as: 'role'
             });
+
+            // Add MFA association
+            User.hasOne(models.MfaSecret, {
+                foreignKey: 'userId',
+                as: 'mfaSecret'
+            });
         }
     }
 
@@ -74,6 +80,11 @@ module.exports = (sequelize, DataTypes) => {
         isActive: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
+        },
+        // Add these fields to the User model
+        isMfaEnabled: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         }
     }, {
         sequelize,
