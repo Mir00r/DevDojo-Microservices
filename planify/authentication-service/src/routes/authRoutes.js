@@ -3,10 +3,12 @@ const PublicAuthController = require('../domains/auth/controllers/publicAuthCont
 const ProtectedAuthController = require('../domains/auth/controllers/protectedAuthController');
 const InternalAuthController = require('../domains/auth/controllers/internalAuthController');
 const RoleController = require('../domains/auth/controllers/roleController');
+const PrivilegeController = require('../domains/auth/controllers/privilegeController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const validate = require('../middlewares/validateMiddleware');
 const {authValidation} = require('../validations/authValidation');
 const {roleValidation} = require('../validations/roleValidation');
+const {privilegeValidation} = require('../validations/privilegeValidation');
 
 
 const router = express.Router();
@@ -35,12 +37,19 @@ router.get('/internal/v1/users/:id', InternalAuthController.getUserById);
 router.put('/internal/v1/users/:id/role', validate(authValidation.updateRole), InternalAuthController.updateUserRole);
 router.delete('/internal/v1/users/:id', InternalAuthController.deleteUser);
 
-// CRUD Routes
+// ROLE Routes
 router.post('/internal/v1/roles', validate(roleValidation.createRole), RoleController.createRole);
 router.get('/internal/v1/roles', RoleController.getAllRoles);
 router.get('/internal/v1/roles/:id', validate(roleValidation.checkId), RoleController.getRoleById);
 router.put('/internal/v1/roles/:id', validate(roleValidation.updateRole), RoleController.updateRole);
 router.delete('/internal/v1/roles/:id', validate(roleValidation.checkId), RoleController.deleteRole);
+
+// PRIVILEGES Routes
+router.post('/internal/v1/privileges', validate(privilegeValidation.createPrivilege), PrivilegeController.createPrivilege);
+router.get('/internal/v1/privileges', PrivilegeController.getAllPrivileges);
+router.get('/internal/v1/privileges/:id', validate(privilegeValidation.checkId), PrivilegeController.getPrivilegeById);
+router.put('/internal/v1/privileges/:id', validate(privilegeValidation.updatePrivilege), PrivilegeController.updatePrivilege);
+router.delete('/internal/v1/privileges/:id', validate(privilegeValidation.checkId), PrivilegeController.deletePrivilege);
 
 // Protected routes (require authentication)
 router.use(authMiddleware.authenticate);
