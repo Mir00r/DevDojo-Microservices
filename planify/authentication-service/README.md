@@ -99,7 +99,11 @@ npm start
 
 ### **6️⃣ Run with Docker**
 ```bash
-docker-compose up --build
+# Development
+docker-compose up
+
+# Production
+NODE_ENV=production docker-compose up
 ```
 
 ---
