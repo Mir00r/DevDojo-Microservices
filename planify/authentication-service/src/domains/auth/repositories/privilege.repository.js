@@ -6,6 +6,10 @@ const {Privilege, Role} = require('../../../../models');
  * Repository for Privilege entity operations
  * @extends BaseRepository
  */
+/**
+ * Repository class for handling privilege database operations
+ * Extends BaseRepository to provide common CRUD operations
+ */
 class PrivilegeRepository extends BaseRepository {
     constructor() {
         super(Privilege);
@@ -14,7 +18,8 @@ class PrivilegeRepository extends BaseRepository {
     /**
      * Find privilege by name
      * @param {string} name - Privilege name
-     * @returns {Promise<Privilege>}
+     * @returns {Promise<Privilege>} Found privilege or null
+     * @throws {Error} If database operation fails
      */
     async findByName(name) {
         return this.findOne({
@@ -26,7 +31,8 @@ class PrivilegeRepository extends BaseRepository {
      * Find privilege by ID with optional role inclusion
      * @param {string} id - Privilege ID
      * @param {boolean} includeRoles - Whether to include associated roles
-     * @returns {Promise<Privilege>}
+     * @returns {Promise<Privilege>} Found privilege with optional roles or null
+     * @throws {Error} If database operation fails
      */
     async findById(id, includeRoles = false) {
         const options = {
@@ -46,8 +52,9 @@ class PrivilegeRepository extends BaseRepository {
 
     /**
      * Find all privileges with pagination and filters
-     * @param {PrivilegeQueryDto} queryDto - Query parameters
-     * @returns {Promise<Object>} Paginated privilege list
+     * @param {PrivilegeQueryDto} queryDto - Query parameters for filtering and pagination
+     * @returns {Promise<Object>} Paginated privilege list with count
+     * @throws {Error} If database operation fails
      */
     async findAll(queryDto) {
         const whereClause = {};
@@ -86,7 +93,8 @@ class PrivilegeRepository extends BaseRepository {
      * Create new privilege
      * @param {CreatePrivilegeDto} createPrivilegeDto - Privilege creation data
      * @param {Object} options - Additional options (transaction, etc.)
-     * @returns {Promise<Privilege>}
+     * @returns {Promise<Privilege>} Created privilege instance
+     * @throws {Error} If database operation fails
      */
     async create(createPrivilegeDto, options = {}) {
         const privilegeData = {
@@ -104,7 +112,8 @@ class PrivilegeRepository extends BaseRepository {
      * @param {string} id - Privilege ID
      * @param {UpdatePrivilegeDto} updatePrivilegeDto - Privilege update data
      * @param {Object} options - Additional options (transaction, etc.)
-     * @returns {Promise<Privilege>}
+     * @returns {Promise<Privilege>} Updated privilege instance
+     * @throws {Error} If database operation fails
      */
     async update(id, updatePrivilegeDto, options = {}) {
         const updateData = {
@@ -120,7 +129,8 @@ class PrivilegeRepository extends BaseRepository {
     /**
      * Check if privilege is associated with any roles
      * @param {string} id - Privilege ID
-     * @returns {Promise<boolean>}
+     * @returns {Promise<boolean>} True if privilege has associated roles
+     * @throws {Error} If database operation fails
      */
     async hasAssociatedRoles(id) {
         const privilege = await this.findOne({
@@ -138,7 +148,8 @@ class PrivilegeRepository extends BaseRepository {
     /**
      * Get privileges by module
      * @param {string} module - Module name
-     * @returns {Promise<Privilege[]>}
+     * @returns {Promise<Privilege[]>} Array of privileges for the specified module
+     * @throws {Error} If database operation fails
      */
     async findByModule(module) {
         return this.findAll({
@@ -153,7 +164,8 @@ class PrivilegeRepository extends BaseRepository {
      * Bulk create privileges
      * @param {CreatePrivilegeDto[]} privileges - Array of privilege data
      * @param {Object} options - Additional options (transaction, etc.)
-     * @returns {Promise<Privilege[]>}
+     * @returns {Promise<Privilege[]>} Array of created privilege instances
+     * @throws {Error} If database operation fails
      */
     async bulkCreatePrivileges(privileges, options = {}) {
         const privilegesData = privileges.map(dto => ({
