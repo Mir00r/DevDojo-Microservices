@@ -1,179 +1,166 @@
-# **Planify Dynamic Scheduler - Backend API**
-🚀 Scalable, secure, and efficient **appointment scheduling and team management** backend.
+# Authentication Service
 
----
+A robust authentication and user management service built with Node.js and Express.js, providing secure user authentication, authorization, and account management functionalities.
 
-## **📌 Project Overview**
-The **Planify Dynamic Scheduler Backend API** provides a robust backend system to manage **appointments, users, teams, payments, inventory, communication, and AI-powered assistance**.
+## 🛠️ Technologies Used
 
-This backend is built using **microservices architecture** with **Node.js, Express.js, PostgreSQL, and Docker**.
-
----
-
-## **🚀 Features**
-✅ **User Management** - Signup, Login, Role-based Access Control (RBAC), JWT authentication  
-✅ **Appointment Scheduling** - Book, reschedule, cancel appointments  
-✅ **Team Management** - Manage staff members and permissions  
-✅ **Reminders & Notifications** - Automated email/SMS notifications  
-✅ **Online Booking System** - Public booking portal for clients  
-✅ **Reports & Analytics** - Generate insights from booking data  
-✅ **Client Forms & Management** - Store client details & feedback  
-✅ **Inventory Management** - Manage products and stock levels  
-✅ **Centralized Communication** - Internal messaging & notifications  
-✅ **AI Assistant** - Smart recommendations and automation  
-✅ **Secure Payments** - Integration with Stripe and PayPal  
-✅ **Calendar Sync** - Sync with Google Calendar  
-✅ **Review & Ratings** - Clients can leave feedback  
-✅ **Product Sales** - Sell items directly from the platform
-
----
-
-## **🛠️ Technologies Used**
 | Technology | Purpose |
-|------------|---------|
-| **Node.js + Express.js** | Backend Framework |
-| **PostgreSQL** | Relational Database |
-| **Docker & Docker Compose** | Containerization |
-| **JWT (jsonwebtoken)** | Authentication & Security |
-| **bcrypt** | Password Hashing |
-| **Redis** | Caching for performance optimization |
-| **RabbitMQ** | Message queue for asynchronous tasks |
-| **Swagger** | API Documentation |
-| **Winston** | Logging |
-| **Jest** | Unit Testing |
+|------------|----------|
+| **Node.js + Express.js** | Backend framework for building RESTful APIs |
+| **PostgreSQL** | Primary database for storing user data and authentication records |
+| **Sequelize ORM** | Object-Relational Mapping for database interactions |
+| **JWT (jsonwebtoken)** | Token-based authentication and authorization |
+| **bcryptjs** | Secure password hashing |
+| **Swagger UI Express** | API documentation and testing interface |
+| **Express Validator** | Request validation and sanitization |
+| **Nodemailer** | Email service integration for notifications |
+| **Morgan** | HTTP request logging |
+| **Helmet** | Security middleware for HTTP headers |
+| **Jest** | Unit and integration testing |
+| **Cors** | Cross-Origin Resource Sharing middleware |
+| **dotenv** | Environment variable management |
 
----
+## 📁 Folder Structure
 
-## **📂 Folder Structure**
 ```
-backend/
-│── src/
-│   ├── configs/            # App & database configuration
-│   ├── domains/            # All the domains logics here
-│   │   ├── controllers/        # Business logic for API endpoints
-│   │   ├── middleware/         # JWT auth, error handling, validation
-│   │   ├── models/             # Database models & schemas
-│   │   ├── services/           # Core business logic & external API calls
-│   ├── routes/             # Express.js route handlers
-│   ├── utils/              # Helpers (password hashing, validation)
-│── tests/                  # Unit & integration tests
-│── docker-compose.yml      # Containerization setup
-│── package.json            # Dependencies & scripts
-│── .env                    # Environment variables
-│── README.md               # Documentation
+├── config/                 # Configuration files
+│   ├── config.json        # Database configuration
+│   └── swagger.js         # Swagger documentation setup
+├── migrations/            # Database migrations
+├── models/                # Sequelize models
+├── src/
+│   ├── app.js            # Express application setup
+│   ├── server.js         # Server initialization
+│   ├── configs/          # Application configurations
+│   ├── domains/          # Business logic modules
+│   │   └── auth/         # Authentication domain
+│   ├── middlewares/      # Custom middleware
+│   ├── routes/           # API routes
+│   ├── utils/            # Utility functions
+│   └── validations/      # Request validators
+├── tests/                # Test files
+└── scripts/              # Utility scripts
 ```
 
----
+## 🚀 Installation & Setup
 
-## **📦 Installation & Setup**
-
-### **1️⃣ Prerequisites**
-Ensure you have installed:
-- **Node.js** (v18+)
-- **Docker** (for PostgreSQL)
-- **PostgreSQL** (if not using Docker)
-
-### **2️⃣ Clone Repository**
+1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/planify-backend.git
-cd planify-backend
+git clone <repository-url>
+cd authentication-service
 ```
 
-### **3️⃣ Install Dependencies**
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-### **4️⃣ Configure Environment Variables**
-Create a `.env` file:
-```
-DATABASE_URL=postgres://admin:secret@localhost:5432/planify_db
-JWT_SECRET=supersecretkey
-PORT=5000
+3. Configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-### **5️⃣ Run the Server**
+4. Set up the database:
+```bash
+# Update config/config.json with your database credentials
+npx sequelize-cli db:migrate
+npx sequelize-cli db:seed:all
+```
+
+5. Start the service:
 ```bash
 npm start
 ```
 
-### **6️⃣ Run with Docker**
-```bash
-# Development
-docker-compose up
+## 📦 Key Dependencies
 
-# Production
-NODE_ENV=production docker-compose up
+- **express**: Web framework for Node.js
+- **sequelize**: ORM for database operations
+- **jsonwebtoken**: JWT implementation for secure authentication
+- **bcryptjs**: Password hashing library
+- **nodemailer**: Email sending functionality
+- **swagger-jsdoc & swagger-ui-express**: API documentation
+- **class-validator**: Input validation
+- **morgan**: HTTP request logger
+- **helmet**: Security headers middleware
+- **cors**: Cross-Origin Resource Sharing
+- **jest & supertest**: Testing framework
+
+## 🔐 API Endpoints
+
+### Public Routes
+
+- **POST /api/auth/register**
+  - Register a new user
+  - Request: `{ name, email, password }`
+
+- **POST /api/auth/login**
+  - Authenticate user
+  - Request: `{ email, password }`
+
+- **POST /api/auth/forgot-password**
+  - Request password reset
+  - Request: `{ email }`
+
+### Protected Routes
+
+- **GET /api/auth/protected/v1/me**
+  - Get current user profile
+  - Requires: Bearer token
+
+- **PUT /api/auth/protected/v1/profile**
+  - Update user profile
+  - Requires: Bearer token
+  - Request: `{ name, email }`
+
+- **POST /api/auth/protected/v1/change-password**
+  - Change password
+  - Requires: Bearer token
+  - Request: `{ currentPassword, newPassword }`
+
+- **POST /api/auth/protected/v1/logout**
+  - Logout current session
+  - Requires: Bearer token
+
+### Internal Routes
+
+- **GET /api/auth/internal/users**
+  - List all users (admin only)
+  - Requires: Bearer token + Admin role
+
+- **PUT /api/auth/internal/users/:userId/role**
+  - Update user role (admin only)
+  - Requires: Bearer token + Admin role
+
+## 📚 API Documentation
+
+Swagger documentation is available at:
+```
+http://localhost:5000/api-docs
 ```
 
----
+## 🧪 Testing
 
-## **🚀 API Endpoints**
-### **📌 Authentication**
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/signup` | Register new user |
-| `POST` | `/api/auth/login` | Authenticate user |
-| `GET` | `/api/auth/me` | Get logged-in user details |
-
-### **📌 Appointments**
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/appointments` | Create new appointment |
-| `GET` | `/api/appointments` | Get all appointments |
-| `PUT` | `/api/appointments/:id` | Update appointment |
-| `DELETE` | `/api/appointments/:id` | Cancel appointment |
-
-### **📌 Reviews**
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/reviews` | Add a review |
-| `GET` | `/api/reviews` | Get all reviews |
-| `DELETE` | `/api/reviews/:id` | Delete a review |
-
-📜 **Full API documentation is available via Swagger.**  
-Start the server and visit:  
-📌 `http://localhost:5000/api-docs`
-
----
-
-## **🧪 Running Tests**
-Run unit tests:
+Run tests:
 ```bash
 npm test
 ```
 
-Run test coverage:
+Run tests in watch mode:
 ```bash
-npm run coverage
+npm run test:watch
 ```
 
----
+## 🔒 Security
 
-## **📜 Contribution Guidelines**
-We welcome contributions! Follow these steps:
-1. Fork the repository
-2. Create a new feature branch (`git checkout -b feature-name`)
-3. Commit changes (`git commit -m "Added new feature"`)
-4. Push to your branch (`git push origin feature-name`)
-5. Open a Pull Request
+- JWT-based authentication
+- Password hashing with bcrypt
+- Protected routes with middleware
+- Request validation and sanitization
+- Security headers with helmet
+- CORS configuration
 
----
+## 📝 License
 
-## **🛠 Future Enhancements**
-- **GraphQL Support**
-- **WebSockets for real-time updates**
-- **Multi-language Support**
-- **AI-driven appointment recommendations**
-- **More integrations with third-party services**
-
----
-
-## **📞 Need Help?**
-📩 **Email**: support@planify.com  
-🌐 **Website**: [planify.com](https://planify.com)  
-💬 **Slack Community**: [Join Here](https://slack.planify.com)
-
----
-
-🔥 **Let's build an intelligent and scalable appointment management system! 🚀**
+ISC
