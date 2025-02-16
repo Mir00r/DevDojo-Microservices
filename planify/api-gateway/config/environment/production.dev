@@ -1,0 +1,28 @@
+# Production Environment (environment/production.env)
+NODE_ENV=production
+LOG_LEVEL=warn
+PORT=8080
+
+# User Service
+USER_SERVICE_URL=http://user-service:3000
+USER_SERVICE_TIMEOUT=3000
+
+# Authentication Service
+AUTH_SERVICE_URL=http://auth-service:4000
+AUTH_SERVICE_TIMEOUT=2000
+
+# Review Service
+REVIEW_SERVICE_URL=http://review-service:5000
+REVIEW_SERVICE_TIMEOUT=2000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=300000
+RATE_LIMIT_MAX_REQUESTS=30
+
+# JWT
+JWT_SECRET=your-production-secret-key
+JWT_EXPIRATION=1h
+
+# Monitoring
+ENABLE_MONITORING=true
+PROMETHEUS_PORT=9090

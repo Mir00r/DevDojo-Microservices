@@ -1,0 +1,24 @@
+# Development Environment (environment/development.env)
+NODE_ENV=development
+LOG_LEVEL=debug
+PORT=8080
+
+# Authentication Service
+AUTH_SERVICE_URL=http://auth-service:5000
+AUTH_SERVICE_TIMEOUT=3000
+
+# Review Service
+REVIEW_SERVICE_URL=http://review-service:6000
+REVIEW_SERVICE_TIMEOUT=4000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# JWT
+JWT_SECRET=your-dev-secret-key
+JWT_EXPIRATION=1h
+
+# Monitoring
+ENABLE_MONITORING=true
+PROMETHEUS_PORT=9090
