@@ -8,6 +8,42 @@
  *       bearerFormat: JWT
  *
  *   schemas:
+ *     EnableMfaDto:
+ *       type: object
+ *       required:
+ *         - userId
+ *       properties:
+ *         userId:
+ *           type: string
+ *           format: uuid
+ *           description: "User's unique identifier"
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         phoneNumber:
+ *           type: string
+ *           description: "Optional: User's phone number for SMS-based MFA"
+ *           example: "+1234567890"
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: "Optional: User's email for email-based MFA"
+ *           example: "user@example.com"
+ *
+ *     VerifyMfaDto:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - code
+ *       properties:
+ *         userId:
+ *           type: string
+ *           format: uuid
+ *           description: "User's unique identifier"
+ *           example: "123e4567-e89b-12d3-a456-426614174000"
+ *         code:
+ *           type: string
+ *           description: "Verification code"
+ *           example: "123456"
+ *
  *     MfaEnableResponse:
  *       type: object
  *       properties:
@@ -32,16 +68,6 @@
  *                 type: string
  *               example: ["F8BB1FDBAE", "1F5ADC4A84"]
  *
- *     MfaVerifyRequest:
- *       type: object
- *       required:
- *         - code
- *       properties:
- *         code:
- *           type: string
- *           description: "6-digit TOTP code or 10-character backup code"
- *           example: "123456"
- *
  *     MfaVerifyResponse:
  *       type: object
  *       properties:
@@ -57,8 +83,11 @@
  *             verified:
  *               type: boolean
  *               example: true
+ *             message:
+ *               type: string
+ *               example: "Verification successful"
  *
- *     ErrorResponse:
+ *     ApiResponse:
  *       type: object
  *       properties:
  *         status:
@@ -77,7 +106,6 @@
  *               message:
  *                 type: string
  *
- * @swagger
  * tags:
  *   name: MFA
  *   description: Multi-Factor Authentication endpoints
@@ -91,6 +119,12 @@
  *     tags: [MFA]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EnableMfaDto'
  *     responses:
  *       200:
  *         description: MFA setup initiated successfully
@@ -103,19 +137,19 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiResponse'
  *       400:
- *         description: Bad Request - MFA already enabled
+ *         description: Bad Request - Invalid input or MFA already enabled
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiResponse'
  *       500:
  *         description: Internal Server Error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiResponse'
  *
  * /protected/v1/mfa/verify:
  *   post:
@@ -128,7 +162,7 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/MfaVerifyRequest'
+ *             $ref: '#/components/schemas/VerifyMfaDto'
  *     responses:
  *       200:
  *         description: MFA verification successful
@@ -137,21 +171,21 @@
  *             schema:
  *               $ref: '#/components/schemas/MfaVerifyResponse'
  *       400:
- *         description: Bad Request - Invalid code format
+ *         description: Bad Request - Invalid code format or missing required fields
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiResponse'
  *       401:
  *         description: Unauthorized - Invalid or missing token
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiResponse'
  *       500:
  *         description: Internal Server Error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/ApiResponse'
  */
